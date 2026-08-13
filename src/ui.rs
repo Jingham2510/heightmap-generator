@@ -76,6 +76,17 @@ fn main_page(app: &mut App, frame: &mut Frame) {
     }
 
     //Render the heightmap
+    if app.hmap_loaded{
+
+    }else{
+        frame.render_widget(
+        Paragraph::new(Line::from(Span::styled("Load a heightmap", Style::new().bold())))
+            .block(Block::new().borders(Borders::ALL))
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        main_layout[1],
+    );
+    }
 
     //CLI text
     let err_msg = if app.curr_error.is_empty() {

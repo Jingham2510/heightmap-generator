@@ -4,6 +4,9 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use std::collections::HashMap;
 
 use crate::app::{App, DeformType};
+use rustgeomapping::data_types::heightmap::Heightmap;
+
+use std::env;
 
 pub fn update(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
@@ -135,15 +138,21 @@ fn parse_user_input(app: &mut App, user_inp: String) {
         //Load a heightmap
         "load" =>{
 
-            //See if a heightmap can be loaded from the filepath
-            let hmap = Heightmap::create_from_file(var);
+            //See if a heightmap can be loaded from the filepath            
+            let path = format!("{}{}", env::current_dir().unwrap().display(), var);
+            let hmap_result = Heightmap::create_from_file(path);
+            match hmap_result{
+                Ok(hmap) => {
+                    app.loaded_hmap = hmap;
+                    app.hmap_loaded = true;
 
-            if hmap.is_ok(){
-                app.loaded_hmap = hmap.unwrap();
-
-            }else{
-                app.curr_error = String::from("Invalid heightmap filepath");
+                },
+                Err(e) =>{
+                    app.curr_error = String::from("Invalid heightmap filepath");
+                    return;
+                }
             }
+
 
 
         }

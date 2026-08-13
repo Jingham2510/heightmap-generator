@@ -63,6 +63,7 @@ pub struct App {
     pub curr_input: String,
 
     ///Currently loded heightmap
+    pub hmap_loaded : bool,
     pub loaded_hmap : Heightmap,
 }
 
