@@ -3,10 +3,18 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Paragraph, Wrap},
+    widgets::{
+        Block, BorderType, Borders, Paragraph, Wrap,
+        canvas::{Canvas, Rectangle}
+    },
 };
 
-use crate::app::{App, DeformType};
+use crate::app::{App, DeformType, HeightmapShape};
+
+
+
+
+
 
 pub fn render(app: &mut App, frame: &mut Frame) {
     main_page(app, frame)
@@ -50,18 +58,18 @@ fn main_page(app: &mut App, frame: &mut Frame) {
 
     //Render the standard control panel
     let cntrl_panel_text = vec![
-        Line::from(Span::styled("Shape positioning", Style::new().bold())),
-        Line::from(format!(
+            Line::from(format!(
             "Pos X: {}       Pos Y: {}",
             app.deform_center[0], app.deform_center[1]
         )),
         Line::from(format!(" Rotation (degs): {}", app.deform_rotation)),
         Line::from(format!("Thickness (mm): {}", app.deform_thickness)),
+        Line::from(format!("Depth (mm): {}", app.deform_depth)),
     ];
 
     frame.render_widget(
         Paragraph::new(cntrl_panel_text)
-            .block(Block::new().borders(Borders::ALL))
+            .block(Block::new().borders(Borders::ALL).title( Line::from(Span::styled("Shape positioning", Style::new().bold()))))
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: true }),
         cntrl_panel_layout[0],
@@ -77,7 +85,7 @@ fn main_page(app: &mut App, frame: &mut Frame) {
 
     //Render the heightmap
     if app.hmap_loaded{
-
+        render_heightmap(app, frame, main_layout[1])
     }else{
         frame.render_widget(
         Paragraph::new(Line::from(Span::styled("Load a heightmap", Style::new().bold())))
@@ -117,7 +125,7 @@ fn none_cntrl_panel(frame: &mut Frame, widget: Rect) {
     let msg = Line::from("Select a shape using 'set shape [shape]'").centered();
 
     frame.render_widget(
-        Paragraph::new(msg).block(Block::new().borders(Borders::ALL)),
+        Paragraph::new(msg).block(Block::new().borders(Borders::ALL).title(Line::from(Span::styled("Shape settings", Style::new().bold())))),
         widget,
     );
 }
@@ -143,7 +151,47 @@ fn shape_cntrl_panel(app: &mut App, frame: &mut Frame, widget: Rect) {
     }
 
     frame.render_widget(
-        Paragraph::new(setting_lines).block(Block::new().borders(Borders::ALL)),
+        Paragraph::new(setting_lines).block(Block::new().borders(Borders::ALL).title(Line::from(Span::styled("Shape settings", Style::new().bold())))),
         widget,
     )
+}
+
+
+
+///Render the current heightmap onto a canvas
+fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect){
+
+    //Create the heightmap layout widget
+    let data_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Percentage(6),
+            Constraint::Percentage(94),
+        ])
+        .split(widget);
+
+    //Display the heightmap data in mm
+    frame.render_widget(
+        Paragraph::new(Line::from(format!("Stats: Min depth:{}mm Max depth:{}mm", app.hmap_min, app.hmap_max)))
+        .block(Block::new().borders(Borders::ALL)),
+        data_layout[0]
+    );
+
+    let canvas = Canvas::default()
+        .block(Block::bordered().title("Current heightmap"))
+        .x_bounds([0.0, app.loaded_hmap.width() as f64])
+        .y_bounds([0.0, app.loaded_hmap.height() as f64])
+        .paint(|ctx|{
+            ctx.draw(&HeightmapShape { cells: &app.hmap_cells })
+
+        });
+    
+    //Create the canvas
+    frame.render_widget(
+        canvas,
+        data_layout[1]
+    )
+
+
+
 }

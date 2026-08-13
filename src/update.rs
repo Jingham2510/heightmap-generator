@@ -1,12 +1,22 @@
 use anyhow::{Error, bail};
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use std::collections::HashMap;
+use ratatui::{   
+    style::Color,
+    widgets::{
+        Block, BorderType, Borders,
+        canvas::{Canvas, Rectangle}
+    },
+};
 
-use crate::app::{App, DeformType};
+
+use crate::app::{App, DeformType, HeightmapShape};
 use rustgeomapping::data_types::heightmap::Heightmap;
 
 use std::env;
+
+
+
 
 pub fn update(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
@@ -116,6 +126,16 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                     }
                 }
 
+                //Set the depth
+                "depth" => {
+                    let new_val = safe_str_to_f64(app, opt_var);
+                    if new_val.is_ok() {
+                        app.deform_depth = new_val.unwrap();
+                    } else {
+                        return;
+                    }
+                }
+
                 //Check if the user is interacting with a shape specific
                 _ => {
                     //See if it is a setting in the shapes setting hashmap
@@ -137,7 +157,6 @@ fn parse_user_input(app: &mut App, user_inp: String) {
 
         //Load a heightmap
         "load" =>{
-
             //See if a heightmap can be loaded from the filepath            
             let path = format!("{}{}", env::current_dir().unwrap().display(), var);
             let hmap_result = Heightmap::create_from_file(path);
@@ -145,6 +164,11 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 Ok(hmap) => {
                     app.loaded_hmap = hmap;
                     app.hmap_loaded = true;
+                    app.hmap_fp = format!("{}{}", env::current_dir().unwrap().display(), var);
+
+                    get_hmap_info(app);
+
+
 
                 },
                 Err(e) =>{
@@ -152,9 +176,19 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                     return;
                 }
             }
+        }
 
-
-
+        //Save a heightmap
+        "save" =>{
+            let path = format!("{}{}", env::current_dir().unwrap().display(), var);
+            let result = app.loaded_hmap.save_to_file(&path);
+            match result{
+                Ok(good) =>{},
+                Err(e) => {
+                    app.curr_error = String::from("Failed to save heightmap");
+                    return;
+                }
+            }
         }
 
         _ => {
@@ -178,4 +212,38 @@ fn safe_str_to_f64(app: &mut App, inp: String) -> Result<f64, anyhow::Error> {
     } else {
         return Ok(inp_f64.unwrap());
     }
+}
+
+
+
+///Calculate the hmap info and canvas
+fn get_hmap_info(app: &mut App){
+            //Calculate the heightmap stats
+            app.hmap_max = app.loaded_hmap.get_max() * 1000.0;
+            app.hmap_min = app.loaded_hmap.get_min() * 1000.0;
+
+            app.hmap_cells = vec![];
+            let mut row_cnt = 0.0;
+            let mut col_cnt = 0.0;                
+            //Heightmap drawing function
+            for row in app.loaded_hmap.cells(){
+                for cell in row{
+                    if col_cnt < 50.0{
+                        app.hmap_cells.push(
+                            (col_cnt,
+                            row_cnt,
+                            Color::Red)
+                        );
+                    }else{
+                        app.hmap_cells.push(
+                           (col_cnt,
+                            row_cnt,
+                            Color::Blue)
+                        );
+                    }
+                    col_cnt += 1.0;
+                }   
+                col_cnt = 0.0;
+                row_cnt += 1.0; 
+            }
 }
