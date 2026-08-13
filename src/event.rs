@@ -7,7 +7,6 @@ use std::{
 use anyhow::Result;
 use ratatui::crossterm::event::{self, Event as CrosstermEvent, KeyEvent, MouseEvent};
 
-
 /// Terminal events.
 #[derive(Clone, Copy, Debug)]
 pub enum Event {
