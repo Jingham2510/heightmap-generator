@@ -12,6 +12,10 @@ pub mod tui;
 
 /// Application updater.
 pub mod update;
+
+///Heightmap generator
+pub mod heightmapgen;
+
 use anyhow::Result;
 use app::App;
 use event::{Event, EventHandler};

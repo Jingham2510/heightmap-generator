@@ -1,22 +1,21 @@
 use anyhow::{Error, bail};
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use ratatui::{   
+use ratatui::{
     style::Color,
     widgets::{
         Block, BorderType, Borders,
-        canvas::{Canvas, Rectangle}
+        canvas::{Canvas, Rectangle},
     },
 };
 
-
-use crate::app::{App, DeformType, HeightmapShape};
+use crate::{
+    app::{App, DeformType, HeightmapShape},
+    heightmapgen::generate_hmap,
+};
 use rustgeomapping::data_types::heightmap::Heightmap;
 
 use std::env;
-
-
-
 
 pub fn update(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
@@ -68,16 +67,19 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                     //Set the deform type and also the variables
                     match opt_var.as_str() {
                         "line" => {
-                            app.deform_type = DeformType::LINE;
-                            app.deform_settings = app.deform_type.get_default_settings();
+                            app.core_settings.deform_type = DeformType::LINE;
+                            app.deform_settings =
+                                app.core_settings.deform_type.get_default_settings();
                         }
                         "circle" => {
-                            app.deform_type = DeformType::CIRCLE;
-                            app.deform_settings = app.deform_type.get_default_settings();
+                            app.core_settings.deform_type = DeformType::CIRCLE;
+                            app.deform_settings =
+                                app.core_settings.deform_type.get_default_settings();
                         }
                         "rectangle" => {
-                            app.deform_type = DeformType::RECTANGLE;
-                            app.deform_settings = app.deform_type.get_default_settings();
+                            app.core_settings.deform_type = DeformType::RECTANGLE;
+                            app.deform_settings =
+                                app.core_settings.deform_type.get_default_settings();
                         }
                         _ => {
                             app.curr_error = format!(
@@ -92,7 +94,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 "posx" => {
                     let new_val = safe_str_to_f64(app, opt_var);
                     if new_val.is_ok() {
-                        app.deform_center[0] = new_val.unwrap();
+                        app.core_settings.deform_center[0] = new_val.unwrap();
                     } else {
                         return;
                     }
@@ -100,7 +102,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 "posy" => {
                     let new_val = safe_str_to_f64(app, opt_var);
                     if new_val.is_ok() {
-                        app.deform_center[1] = new_val.unwrap();
+                        app.core_settings.deform_center[1] = new_val.unwrap();
                     } else {
                         return;
                     }
@@ -110,7 +112,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 "rot" => {
                     let new_val = safe_str_to_f64(app, opt_var);
                     if new_val.is_ok() {
-                        app.deform_rotation = new_val.unwrap();
+                        app.core_settings.deform_rotation = new_val.unwrap();
                     } else {
                         return;
                     }
@@ -120,7 +122,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 "thickness" => {
                     let new_val = safe_str_to_f64(app, opt_var);
                     if new_val.is_ok() {
-                        app.deform_thickness = new_val.unwrap();
+                        app.core_settings.deform_thickness = new_val.unwrap();
                     } else {
                         return;
                     }
@@ -130,11 +132,38 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 "depth" => {
                     let new_val = safe_str_to_f64(app, opt_var);
                     if new_val.is_ok() {
-                        app.deform_depth = new_val.unwrap();
+                        app.core_settings.deform_depth = new_val.unwrap();
                     } else {
                         return;
                     }
                 }
+
+                //Set the overlay setting
+                "overlay" => {
+                    if opt_var == "on" {
+                        app.overlay_on = true;
+                    } else if opt_var == "off" {
+                        app.overlay_on = false;
+                    } else {
+                        app.curr_error = String::from("Invalid overlay option!");
+                        return;
+                    }
+                }
+
+                //Set the autogen option
+                "autogen" => {
+                    if opt_var == "on" {
+                        app.auto_generate = true;
+                    } else if opt_var == "off" {
+                        app.auto_generate = false;
+                    } else {
+                        app.curr_error = String::from("Invalid autogen option!");
+                        return;
+                    }
+                }
+
+
+                
 
                 //Check if the user is interacting with a shape specific
                 _ => {
@@ -142,36 +171,36 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                     if app.deform_settings.contains_key(&var) {
                         let new_val = safe_str_to_f64(app, opt_var);
                         if new_val.is_ok() {
-                            app.deform_settings.entry(var).insert_entry(new_val.unwrap());
+                            app.deform_settings
+                                .entry(var)
+                                .insert_entry(new_val.unwrap());
                         } else {
-                            
                             return;
                         }
                     } else {
                         app.curr_error = String::from("Invalid set option!");
                         return;
                     }
-                }
+                }            
+               
+            
             }
         }
 
         //Load a heightmap
-        "load" =>{
-            //See if a heightmap can be loaded from the filepath            
+        "load" => {
+            //See if a heightmap can be loaded from the filepath
             let path = format!("{}{}", env::current_dir().unwrap().display(), var);
             let hmap_result = Heightmap::create_from_file(path);
-            match hmap_result{
+            match hmap_result {
                 Ok(hmap) => {
                     app.loaded_hmap = hmap;
                     app.hmap_loaded = true;
                     app.hmap_fp = format!("{}{}", env::current_dir().unwrap().display(), var);
 
                     get_hmap_info(app);
-
-
-
-                },
-                Err(e) =>{
+                }
+                Err(e) => {
                     app.curr_error = String::from("Invalid heightmap filepath");
                     return;
                 }
@@ -179,11 +208,11 @@ fn parse_user_input(app: &mut App, user_inp: String) {
         }
 
         //Save a heightmap
-        "save" =>{
+        "save" => {
             let path = format!("{}{}", env::current_dir().unwrap().display(), var);
             let result = app.loaded_hmap.save_to_file(&path);
-            match result{
-                Ok(good) =>{},
+            match result {
+                Ok(good) => {}
                 Err(e) => {
                     app.curr_error = String::from("Failed to save heightmap");
                     return;
@@ -191,11 +220,37 @@ fn parse_user_input(app: &mut App, user_inp: String) {
             }
         }
 
+        //Deformation controls (generate, apply)
+        "deform" => match var.as_str() {
+            "generate" => {
+                app.generated_hmap = generate_hmap(
+                    [app.loaded_hmap.width(), app.loaded_hmap.height()],
+                    &app.core_settings,
+                    &app.deform_settings,
+                );
+                create_generated_cells(app);
+            }
+            _ => {
+                app.curr_error = String::from("Invalid generation command");
+                return;
+            }
+        },
+
         _ => {
             app.curr_error = String::from("Unrecognised command!");
             return;
         }
     };
+
+     //Automatically update the shape if required
+    if cmd == "set" && app.overlay_on && app.auto_generate{
+        app.generated_hmap = generate_hmap(
+        [app.loaded_hmap.width(), app.loaded_hmap.height()],
+        &app.core_settings,
+        &app.deform_settings,
+        );
+        create_generated_cells(app);
+    }
 
     app.curr_error = String::new();
     app.curr_input = String::from("");
@@ -214,61 +269,78 @@ fn safe_str_to_f64(app: &mut App, inp: String) -> Result<f64, anyhow::Error> {
     }
 }
 
-
-
 ///Calculate the hmap info and canvas
-fn get_hmap_info(app: &mut App){
-            //Calculate the heightmap stats
-            app.hmap_max = app.loaded_hmap.get_max() * 1000.0;
-            app.hmap_min = app.loaded_hmap.get_min() * 1000.0;
+fn get_hmap_info(app: &mut App) {
 
-            app.hmap_cells = vec![];
-            let mut row_cnt = 0.0;
-            let mut col_cnt = 0.0;                
-            //Heightmap drawing function - reverse to draw and match pyplot 
-            for row in app.loaded_hmap.cells().into_iter().rev(){
-                for cell in row{
+    app.hmap_max = app.loaded_hmap.get_max() * 1000.0;
+    app.hmap_min = app.loaded_hmap.get_min() * 1000.0;
 
-                    let cell_colour = calc_cell_colour(app, &cell);
 
-                        app.hmap_cells.push(
-                            (col_cnt,
-                            row_cnt,
-                            cell_colour)
-                        );
-                    col_cnt += 1.0;
-                }   
-                col_cnt = 0.0;
-                row_cnt += 1.0; 
-            }
+    app.hmap_cells = vec![];
+    let mut row_cnt = 0.0;
+    let mut col_cnt = 0.0;
+    //Heightmap drawing function - reverse to draw and match pyplot
+    for row in app.loaded_hmap.cells().into_iter().rev() {
+        for cell in row {
+            let cell_colour = calc_cell_colour(app, &cell);
+
+            app.hmap_cells.push((col_cnt, row_cnt, cell_colour));
+            col_cnt += 1.0;
+        }
+        col_cnt = 0.0;
+        row_cnt += 1.0;
+    }
 }
 
-///Calculate what colour the cell should be 
-fn calc_cell_colour(app: &mut App, cell_val : &f32) -> Color{
-
+///Calculate what colour the cell should be
+fn calc_cell_colour(app: &mut App, cell_val: &f32) -> Color {
     //Check to see if the cell height is known
-    if cell_val.is_nan(){
-        return Color::Rgb(255, 255, 255)
-    }else{
-
+    if cell_val.is_nan() {
+        return Color::Rgb(255, 255, 255);
+    } else {
         let max = app.hmap_max;
         let min = app.hmap_min;
         let range = max - min;
-        let median = min + range/2.0;
+        let median = min + range / 2.0;
 
         //Turn value into mm depth
         let cell_val = cell_val * 1000.0;
 
         //Calculate the cell value based on distance from the median
-        let (r,g,b) = if cell_val <= median{
-            (255.0 * (1.0 - ((cell_val - min) / (median - min))), 255.0* (((cell_val - min) / (median - min))), 0.0)
-        }else{
-            (0.0, 255.0 * (1.0 - ((cell_val - median) / (max - median))), 255.0* (((cell_val - median) / (max - median))))
+        let (r, g, b) = if cell_val <= median {
+            (
+                255.0 * (1.0 - ((cell_val - min) / (median - min))),
+                255.0 * ((cell_val - min) / (median - min)),
+                0.0,
+            )
+        } else {
+            (
+                0.0,
+                255.0 * (1.0 - ((cell_val - median) / (max - median))),
+                255.0 * ((cell_val - median) / (max - median)),
+            )
         };
 
-        
-
-        return Color::Rgb(r as u8, g as u8, b as u8)
+        return Color::Rgb(r as u8, g as u8, b as u8);
     }
-
 }
+
+
+fn create_generated_cells(app: &mut App){
+
+    app.generated_cells = vec![];
+    let mut row_cnt = 0.0;
+    let mut col_cnt = 0.0;
+    //Heightmap drawing function - reverse to draw and match pyplot
+    for row in app.loaded_hmap.cells().into_iter().rev() {
+        for cell in row {
+            let cell_colour = calc_cell_colour(app, &cell);
+
+            app.generated_cells.push((col_cnt, row_cnt, cell_colour));
+            col_cnt += 1.0;
+        }
+        col_cnt = 0.0;
+        row_cnt += 1.0;
+    }
+}
+

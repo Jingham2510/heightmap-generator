@@ -1,14 +1,10 @@
-use std::collections::HashMap;
 use rustgeomapping::data_types::heightmap::Heightmap;
-
+use std::collections::HashMap;
 
 use ratatui::{
-    widgets::canvas::{Shape, Painter},
-    style::Color
+    style::Color,
+    widgets::canvas::{Painter, Shape},
 };
-
-   
-
 
 ///Types of deformation
 #[derive(Debug, Default)]
@@ -51,6 +47,29 @@ impl ToString for DeformType {
     }
 }
 
+///Core settings for creating deformations (i.e. every shape requires it)
+#[derive(Default)]
+pub struct CoreSettings {
+    pub deform_type: DeformType,
+    pub deform_center: [f64; 2],
+    pub deform_rotation: f64,
+    pub deform_thickness: f64,
+    pub deform_depth: f64,
+}
+
+//Default settings for the core deofmration settings
+impl Default for CoreSettings{
+    fn default() -> Self{
+        CoreSettings{
+            deform_type : DeformType::Default,
+            deofmr_center : [500.0, 500.0],
+            deform_rotation : 0.0,
+            deform_thickness : 50.0,
+            deform_depth : 400.0
+        }
+    }
+}
+
 ///Custom heightmap shape
 pub struct HeightmapShape<'a> {
     // Precomputed once: (x, y, color) per cell
@@ -66,38 +85,39 @@ impl<'a> Shape for HeightmapShape<'a> {
     }
 }
 
-
 /// Application.
 #[derive(Default)]
-pub struct App{
+pub struct App {
     /// should the application exit?
     pub should_quit: bool,
 
-    ///Deformation type
-    pub deform_type: DeformType,
     ///Deformation setup info and associated variables
     pub deform_settings: HashMap<String, f64>,
 
     ///Deformation position and rotation (degrees)
-    pub deform_center: [f64; 2],
-    pub deform_rotation: f64,
-    pub deform_thickness: f64,
-    pub deform_depth: f64,
+    pub core_settings: CoreSettings,
+
+    pub overlay_on: bool,
 
     ///Current CLI input
     pub curr_error: String,
     pub curr_input: String,
 
-    ///Currently loded heightmap
-    pub hmap_loaded : bool,
-    pub loaded_hmap : Heightmap,
-    pub hmap_min : f32,
-    pub hmap_max : f32,
-    pub hmap_fp : String,
-    pub hmap_cells : Vec<(f64, f64, Color)>
+    ///Currently loaded heightmap
+    pub hmap_loaded: bool,
+    pub loaded_hmap: Heightmap,
+    pub hmap_min: f32,
+    pub hmap_max: f32,
+    pub hmap_fp: String,
+    pub hmap_cells: Vec<(f64, f64, Color)>,
+
+    //Generated deformation
+    pub generated_hmap: Heightmap,
+    pub generated_cells: Vec<(f64, f64, Color)>,
+    pub auto_generate : bool
 }
 
-impl App{
+impl App {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         Self::default()
