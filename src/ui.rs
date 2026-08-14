@@ -59,7 +59,7 @@ fn main_page(app: &mut App, frame: &mut Frame) {
         Line::from("Display overlay: [ ]")
     };
 
-    let auto_gen_line = if app.auto_generate{
+    let auto_gen_line = if app.auto_generate {
         Line::from("Auto generate: [X]")
     } else {
         Line::from("Auto generate: [ ]")
@@ -81,7 +81,7 @@ fn main_page(app: &mut App, frame: &mut Frame) {
         )),
         Line::from(format!("Depth (mm): {}", app.core_settings.deform_depth)),
         overlay_line,
-        auto_gen_line
+        auto_gen_line,
     ];
 
     frame.render_widget(
@@ -220,7 +220,6 @@ fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect) {
                 ctx.draw(&HeightmapShape {
                     cells: &app.hmap_cells,
                 });
-                ctx.layer();
                 ctx.draw(&HeightmapShape {
                     cells: &app.generated_cells,
                 })

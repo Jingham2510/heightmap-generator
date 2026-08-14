@@ -113,6 +113,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                     let new_val = safe_str_to_f64(app, opt_var);
                     if new_val.is_ok() {
                         app.core_settings.deform_rotation = new_val.unwrap();
+                        
                     } else {
                         return;
                     }
@@ -162,9 +163,6 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                     }
                 }
 
-
-                
-
                 //Check if the user is interacting with a shape specific
                 _ => {
                     //See if it is a setting in the shapes setting hashmap
@@ -181,9 +179,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                         app.curr_error = String::from("Invalid set option!");
                         return;
                     }
-                }            
-               
-            
+                }
             }
         }
 
@@ -208,25 +204,45 @@ fn parse_user_input(app: &mut App, user_inp: String) {
         }
 
         //Save a heightmap
-        "save" => {
-            let path = format!("{}{}", env::current_dir().unwrap().display(), var);
-            let result = app.loaded_hmap.save_to_file(&path);
-            match result {
-                Ok(good) => {}
-                Err(e) => {
-                    app.curr_error = String::from("Failed to save heightmap");
-                    return;
+        "save" => match var.as_str() {
+            "gen" => {
+
+                let path = format!("{}{}", env::current_dir().unwrap().display(), opt_var);
+                let result = app.generated_hmap.save_to_file(&path);
+                match result {
+                    Ok(good) => {}
+                    Err(e) => {
+                        app.curr_error = String::from("Failed to save heightmap");
+                        return;
+                    }
                 }
             }
-        }
+            "created" => {
+                let path = format!("{}{}", env::current_dir().unwrap().display(), opt_var);
+                let result = app.loaded_hmap.save_to_file(&path);
+                match result {
+                    Ok(good) => {}
+                    Err(e) => {
+                        app.curr_error = String::from("Failed to save heightmap");
+                        return;
+                    }
+                }
+            }
+
+            _ => {
+                app.curr_error = String::from("Invalid save option");
+                return;
+            }
+        },
 
         //Deformation controls (generate, apply)
         "deform" => match var.as_str() {
             "generate" => {
                 app.generated_hmap = generate_hmap(
-                    [app.loaded_hmap.width(), app.loaded_hmap.height()],
-                    &app.core_settings,
-                    &app.deform_settings,
+                [app.loaded_hmap.lower_coord_bounds(), app.loaded_hmap.upper_coord_bounds()],
+                [app.loaded_hmap.width(), app.loaded_hmap.height()],
+                &app.core_settings,
+                &app.deform_settings,
                 );
                 create_generated_cells(app);
             }
@@ -242,12 +258,16 @@ fn parse_user_input(app: &mut App, user_inp: String) {
         }
     };
 
-     //Automatically update the shape if required
-    if cmd == "set" && app.overlay_on && app.auto_generate{
+    //Automatically update the shape if required
+    if cmd == "set" && app.overlay_on && app.auto_generate {
         app.generated_hmap = generate_hmap(
-        [app.loaded_hmap.width(), app.loaded_hmap.height()],
-        &app.core_settings,
-        &app.deform_settings,
+            [
+                app.loaded_hmap.lower_coord_bounds(),
+                app.loaded_hmap.upper_coord_bounds(),
+            ],
+            [app.loaded_hmap.width(), app.loaded_hmap.height()],
+            &app.core_settings,
+            &app.deform_settings,
         );
         create_generated_cells(app);
     }
@@ -271,12 +291,10 @@ fn safe_str_to_f64(app: &mut App, inp: String) -> Result<f64, anyhow::Error> {
 
 ///Calculate the hmap info and canvas
 fn get_hmap_info(app: &mut App) {
-
     app.hmap_max = app.loaded_hmap.get_max() * 1000.0;
     app.hmap_min = app.loaded_hmap.get_min() * 1000.0;
 
-
-    app.hmap_cells = vec![];
+    app.hmap_cells.clear();
     let mut row_cnt = 0.0;
     let mut col_cnt = 0.0;
     //Heightmap drawing function - reverse to draw and match pyplot
@@ -325,15 +343,21 @@ fn calc_cell_colour(app: &mut App, cell_val: &f32) -> Color {
     }
 }
 
+///Create the generated deformation cells
+fn create_generated_cells(app: &mut App) {
 
-fn create_generated_cells(app: &mut App){
-
-    app.generated_cells = vec![];
+    app.generated_cells.clear();
     let mut row_cnt = 0.0;
     let mut col_cnt = 0.0;
     //Heightmap drawing function - reverse to draw and match pyplot
-    for row in app.loaded_hmap.cells().into_iter().rev() {
+    for row in app.generated_hmap.cells().into_iter().rev() {
         for cell in row {
+            //Dont paint nan cells
+            if cell.is_nan(){
+                col_cnt += 1.0;
+                continue;
+            }
+
             let cell_colour = calc_cell_colour(app, &cell);
 
             app.generated_cells.push((col_cnt, row_cnt, cell_colour));
@@ -343,4 +367,3 @@ fn create_generated_cells(app: &mut App){
         row_cnt += 1.0;
     }
 }
-

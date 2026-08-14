@@ -48,7 +48,6 @@ impl ToString for DeformType {
 }
 
 ///Core settings for creating deformations (i.e. every shape requires it)
-#[derive(Default)]
 pub struct CoreSettings {
     pub deform_type: DeformType,
     pub deform_center: [f64; 2],
@@ -58,14 +57,14 @@ pub struct CoreSettings {
 }
 
 //Default settings for the core deofmration settings
-impl Default for CoreSettings{
-    fn default() -> Self{
-        CoreSettings{
-            deform_type : DeformType::Default,
-            deofmr_center : [500.0, 500.0],
-            deform_rotation : 0.0,
-            deform_thickness : 50.0,
-            deform_depth : 400.0
+impl Default for CoreSettings {
+    fn default() -> Self {
+        CoreSettings {
+            deform_type: DeformType::default(),
+            deform_center: [500.0, 500.0],
+            deform_rotation: 0.0,
+            deform_thickness: 50.0,
+            deform_depth: 400.0,
         }
     }
 }
@@ -114,7 +113,7 @@ pub struct App {
     //Generated deformation
     pub generated_hmap: Heightmap,
     pub generated_cells: Vec<(f64, f64, Color)>,
-    pub auto_generate : bool
+    pub auto_generate: bool,
 }
 
 impl App {
