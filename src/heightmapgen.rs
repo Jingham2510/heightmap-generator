@@ -93,7 +93,7 @@ fn generate_line(
     }
 
     for cell in cells{
-        hmap.set_cell_height(cell.0, cell.1, cell.2 as f32);
+        hmap.set_cell_height(cell.1, cell.0, cell.2 as f32);
     }
 
     return hmap
