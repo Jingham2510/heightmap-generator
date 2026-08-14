@@ -152,7 +152,8 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 }
 
                 //Set the autogen option
-                "autogen" => {
+                "autogen" => {                  
+
                     if opt_var == "on" {
                         app.auto_generate = true;
                     } else if opt_var == "off" {
@@ -237,6 +238,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
 
         //Deformation controls (generate, apply)
         "deform" => match var.as_str() {
+            //Calculates the deformation shape
             "generate" => {
                 app.generated_hmap = generate_hmap(
                 [app.loaded_hmap.lower_coord_bounds(), app.loaded_hmap.upper_coord_bounds()],
@@ -246,6 +248,13 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 );
                 create_generated_cells(app);
             }
+
+            //
+            "apply" => {
+
+            }
+
+
             _ => {
                 app.curr_error = String::from("Invalid generation command");
                 return;

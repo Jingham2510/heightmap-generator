@@ -43,16 +43,11 @@ fn generate_line(
     deform_settings: &HashMap<String, f64>,
 ) -> Heightmap{
     //Precalculate some bits we need
-    let len = deform_settings.get("length").unwrap();
-
-    
+    let len = deform_settings.get("length").unwrap();    
 
     let rot_radians = core_settings.deform_rotation.to_radians();
     let sin_rot = rot_radians.sin();
     let cos_rot = rot_radians.cos();
-
-    let hmap_width = hmap.width();
-    let hmap_height = hmap.height();
 
 
     //Calculate start and end points based on the center, length and rotation
@@ -86,9 +81,7 @@ fn generate_line(
                 let y = gradient * j as f64 + start_point[1] as f64;
                 cells.push((j as usize, (y - i as f64/2.0)as usize, core_settings.deform_depth));
             }
-        }
-        
-    
+        }      
 
     }
 
