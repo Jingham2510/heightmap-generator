@@ -1,4 +1,5 @@
 use ratatui::{
+    symbols,
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -177,10 +178,13 @@ fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect){
         data_layout[0]
     );
 
+    //Display the precreated points
+    //This method of pre-calculating saves a lot of energy when refreshing the frame
     let canvas = Canvas::default()
         .block(Block::bordered().title("Current heightmap"))
         .x_bounds([0.0, app.loaded_hmap.width() as f64])
         .y_bounds([0.0, app.loaded_hmap.height() as f64])
+        .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
         .paint(|ctx|{
             ctx.draw(&HeightmapShape { cells: &app.hmap_cells })
 

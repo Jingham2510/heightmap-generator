@@ -225,25 +225,50 @@ fn get_hmap_info(app: &mut App){
             app.hmap_cells = vec![];
             let mut row_cnt = 0.0;
             let mut col_cnt = 0.0;                
-            //Heightmap drawing function
-            for row in app.loaded_hmap.cells(){
+            //Heightmap drawing function - reverse to draw and match pyplot 
+            for row in app.loaded_hmap.cells().into_iter().rev(){
                 for cell in row{
-                    if col_cnt < 50.0{
+
+                    let cell_colour = calc_cell_colour(app, &cell);
+
                         app.hmap_cells.push(
                             (col_cnt,
                             row_cnt,
-                            Color::Red)
+                            cell_colour)
                         );
-                    }else{
-                        app.hmap_cells.push(
-                           (col_cnt,
-                            row_cnt,
-                            Color::Blue)
-                        );
-                    }
                     col_cnt += 1.0;
                 }   
                 col_cnt = 0.0;
                 row_cnt += 1.0; 
             }
+}
+
+///Calculate what colour the cell should be 
+fn calc_cell_colour(app: &mut App, cell_val : &f32) -> Color{
+
+    //Check to see if the cell height is known
+    if cell_val.is_nan(){
+        return Color::Rgb(255, 255, 255)
+    }else{
+
+        let max = app.hmap_max;
+        let min = app.hmap_min;
+        let range = max - min;
+        let median = min + range/2.0;
+
+        //Turn value into mm depth
+        let cell_val = cell_val * 1000.0;
+
+        //Calculate the cell value based on distance from the median
+        let (r,g,b) = if cell_val <= median{
+            (255.0 * (1.0 - ((cell_val - min) / (median - min))), 255.0* (((cell_val - min) / (median - min))), 0.0)
+        }else{
+            (0.0, 255.0 * (1.0 - ((cell_val - median) / (max - median))), 255.0* (((cell_val - median) / (max - median))))
+        };
+
+        
+
+        return Color::Rgb(r as u8, g as u8, b as u8)
+    }
+
 }

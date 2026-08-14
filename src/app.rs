@@ -56,7 +56,6 @@ pub struct HeightmapShape<'a> {
     // Precomputed once: (x, y, color) per cell
     pub cells: &'a [(f64, f64, Color)],
 }
-
 impl<'a> Shape for HeightmapShape<'a> {
     fn draw(&self, painter: &mut Painter) {
         for &(x, y, color) in self.cells {
