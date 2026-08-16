@@ -18,7 +18,6 @@ pub fn generate_hmap(
     //NB: Would be more efficient to calculate the size of the shape first to reduce the number of nans
     let mut deform_hmap = Heightmap::new(hmap_size[0], hmap_size[1]);
 
-
     deform_hmap.set_lower_coord_bounds(bounds[0]);
     deform_hmap.set_upper_coord_bounds(bounds[1]);
 
@@ -36,7 +35,7 @@ pub fn generate_hmap(
     return deform_hmap;
 }
 
-///Create a line
+///Create a line indent (trench)
 fn generate_line(
     mut hmap: Heightmap,
     core_settings: &CoreSettings,
@@ -90,4 +89,24 @@ fn generate_line(
     }
 
     return hmap
+}
+
+///Create a circular indent
+/// NB:Don't need to worry about the rotation for this
+fn generate_circle{
+    mut hmap: Heightmap,
+    core_settings: &CoreSettings,
+    deform_settings: &HashMap<String, f64>,
+}{
+    //Get the radius information
+    let radius = deform_settings.get("radius").unwrap();
+
+
+    //Create the empty cells
+
+
+
+    //For the thickness draw each circle a bit further out (starting at radius = radius - thickness/2)
+
+
 }
