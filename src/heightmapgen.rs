@@ -114,7 +114,11 @@ fn generate_circle(
 
     for i in 0..(core_settings.deform_thickness as usize){
 
-        for j in 0..360{
+        for j in 0i32..36000{
+
+            //Allow for more resolution in the circle creation
+            let j = f64::from(j) * 0.01;
+
             cells.push((
                 (center_x + ((j as f64 * (PI / 180.0)).sin() * curr_radius)) as usize,
                 (center_y + ((j as f64 * (PI / 180.0)).cos() * curr_radius)) as usize,

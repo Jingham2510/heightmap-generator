@@ -249,8 +249,19 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 create_generated_cells(app);
             }
 
-            //
+            //Apply the generated deformation to the loaded heightmap 
             "apply" => {
+                
+                //Update the currently loaded heightmap
+                app.loaded_hmap.update_section(app.generated_hmap.clone());
+
+                //Turn the overlay off
+                app.overlay_on = false;
+
+                //Regenerate the loaded hmap info
+                get_hmap_info(app);
+
+
 
             }
 
