@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-    app::{App, DeformType, HeightmapShape},
+    app::{App, DeformType, HeightmapShape, NO_OF_TABS},
     heightmapgen::generate_hmap,
 };
 use rustgeomapping::data_types::heightmap::Heightmap;
@@ -19,7 +19,20 @@ use std::env;
 
 pub fn update(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
+        //Close the app
         KeyCode::Esc => app.quit(),
+        
+        //Change the tab number
+        KeyCode::Tab=>{
+            //Cycle up to the number of tabs then back to 0
+            app.tab_no = if app.tab_no == NO_OF_TABS{
+                0
+            }else{
+                app.tab_no + 1
+            };
+
+        }
+
         //Terminal based control
         KeyCode::Char(inp) => {
             app.curr_input.push(inp);

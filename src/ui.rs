@@ -1,11 +1,11 @@
 use ratatui::{
     Frame,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect, Offset},
     style::{Color, Style},
     symbols,
     text::{Line, Span},
     widgets::{
-        Block, BorderType, Borders, Paragraph, Wrap,
+        Block, BorderType, Borders, Paragraph, Wrap, Tabs,
         canvas::{Canvas, Rectangle},
     },
 };
@@ -13,27 +13,44 @@ use ratatui::{
 use crate::app::{App, DeformType, HeightmapShape};
 
 pub fn render(app: &mut App, frame: &mut Frame) {
-    main_page(app, frame)
+
+
+    //Construct the page layout
+    let layout = Layout::vertical([Constraint::Percentage(2), Constraint::Percentage(98)]);
+    let [top, main] = frame.area().layout(&layout);
+
+    //Render the tab titles
+    let tabs = Tabs::new(vec!["Tab1", "Tab2", "Tab3"])
+        .style(Color::White)
+        .highlight_style(Style::default().magenta().on_black().bold())
+        .select(app.tab_no)
+        .divider(symbols::DOT)
+        .padding(" ", " ");
+    frame.render_widget(tabs, top);
+
+    //Render the page based on the tab selection
+    if app.tab_no == 0{
+        main_page(app, frame,main)
+    }
 }
 
 ///The main page of the heightmap generator
 /// Consists of 4 widgets - Title, Control Info, Heightmap Renderer, CLI
-fn main_page(app: &mut App, frame: &mut Frame) {
+fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
     //Define the main window layout
     let outer_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![
-            Constraint::Percentage(5),
-            Constraint::Percentage(85),
+            Constraint::Percentage(90),
             Constraint::Percentage(10),
         ])
-        .split(frame.area());
+        .split(area);
 
     //Inner layout that displays the control panel and rendered heightmap
     let main_layout = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(vec![Constraint::Percentage(30), Constraint::Percentage(70)])
-        .split(outer_layout[1]);
+        .split(outer_layout[0]);
 
     //Control panel layout
     let cntrl_panel_layout = Layout::default()
@@ -41,16 +58,6 @@ fn main_page(app: &mut App, frame: &mut Frame) {
         .constraints(vec![Constraint::Percentage(30), Constraint::Percentage(70)])
         .split(main_layout[0]);
 
-    //Render the title widget
-    frame.render_widget(
-        Paragraph::new(Line::from(Span::styled(
-            "Heightmap Generator - Version 0.01",
-            Style::new().bold(),
-        )))
-        .alignment(Alignment::Center)
-        .block(Block::new().borders(Borders::ALL)),
-        outer_layout[0],
-    );
 
     //Determine the overlay line
     let overlay_line = if app.overlay_on {
@@ -123,28 +130,8 @@ fn main_page(app: &mut App, frame: &mut Frame) {
         );
     }
 
-    //CLI text
-    let err_msg = if app.curr_error.is_empty() {
-        Line::from(Span::styled(
-            "Error status: All good B)",
-            Style::new().green().italic(),
-        ))
-    } else {
-        Line::from(Span::styled(
-            format!("Error status: {}", app.curr_error),
-            Style::new().red().bold(),
-        ))
-    };
-
-    let cli_text = vec![err_msg, Line::from(format!(">{}_", app.curr_input))];
-
-    //Render the CLI section
-    frame.render_widget(
-        Paragraph::new(cli_text)
-            .alignment(Alignment::Left)
-            .block(Block::new().borders(Borders::ALL)),
-        outer_layout[2],
-    );
+    render_CLI(app, frame, outer_layout[1])
+   
 }
 
 ///Control panel for telling the user to select a shape
@@ -185,6 +172,32 @@ fn shape_cntrl_panel(app: &mut App, frame: &mut Frame, widget: Rect) {
         ))),
         widget,
     )
+}
+
+///Render the user CLI
+fn render_CLI(app: &mut App, frame: &mut Frame, widget : Rect){
+ //CLI text
+    let err_msg = if app.curr_error.is_empty() {
+        Line::from(Span::styled(
+            "Error status: All good B)",
+            Style::new().green().italic(),
+        ))
+    } else {
+        Line::from(Span::styled(
+            format!("Error status: {}", app.curr_error),
+            Style::new().red().bold(),
+        ))
+    };
+
+    let cli_text = vec![err_msg, Line::from(format!(">{}_", app.curr_input))];
+
+    //Render the CLI section
+    frame.render_widget(
+        Paragraph::new(cli_text)
+            .alignment(Alignment::Left)
+            .block(Block::new().borders(Borders::ALL)),
+        widget,
+    );
 }
 
 ///Render the current heightmap onto a canvas

@@ -84,11 +84,20 @@ impl<'a> Shape for HeightmapShape<'a> {
     }
 }
 
+
+
+///Number of tab pages in the application
+ pub const NO_OF_TABS : usize = 1;
+
+
 /// Application.
 #[derive(Default)]
 pub struct App {
     /// should the application exit?
     pub should_quit: bool,
+
+    ///Tab selection
+    pub tab_no : usize,
 
     ///Deformation setup info and associated variables
     pub deform_settings: HashMap<String, f64>,
