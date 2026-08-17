@@ -4,11 +4,11 @@ pub mod app;
 /// Terminal events handler.
 pub mod event;
 
-/// Widget renderer.
-pub mod ui;
-
 /// Terminal user interface.
 pub mod tui;
+
+///User interface controller
+pub mod ui;
 
 /// Application updater.
 pub mod update;
