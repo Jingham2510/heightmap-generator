@@ -43,7 +43,7 @@ impl ToString for DeformType {
             _ => "None",
         };
 
-        return String::from(deform_str);
+        String::from(deform_str)
     }
 }
 

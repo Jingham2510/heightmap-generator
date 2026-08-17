@@ -1,16 +1,10 @@
-use anyhow::{Error, bail};
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use anyhow::bail;
+use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
-use ratatui::{
-    style::Color,
-    widgets::{
-        Block, BorderType, Borders,
-        canvas::{Canvas, Rectangle},
-    },
-};
+use ratatui::style::Color;
 
 use crate::{
-    app::{App, DeformType, HeightmapShape, NO_OF_TABS},
+    app::{App, DeformType, NO_OF_TABS},
     heightmapgen::generate_hmap,
 };
 use rustgeomapping::data_types::heightmap::Heightmap;
@@ -210,7 +204,7 @@ fn parse_user_input(app: &mut App, user_inp: String) {
 
                     get_hmap_info(app);
                 }
-                Err(e) => {
+                Err(_e) => {
                     app.curr_error = String::from("Invalid heightmap filepath");
                     return;
                 }
@@ -224,8 +218,8 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 let path = format!("{}{}", env::current_dir().unwrap().display(), opt_var);
                 let result = app.generated_hmap.save_to_file(&path);
                 match result {
-                    Ok(good) => {}
-                    Err(e) => {
+                    Ok(_good) => {}
+                    Err(_e) => {
                         app.curr_error = String::from("Failed to save heightmap");
                         return;
                     }
@@ -235,8 +229,8 @@ fn parse_user_input(app: &mut App, user_inp: String) {
                 let path = format!("{}{}", env::current_dir().unwrap().display(), opt_var);
                 let result = app.loaded_hmap.save_to_file(&path);
                 match result {
-                    Ok(good) => {}
-                    Err(e) => {
+                    Ok(_good) => {}
+                    Err(_e) => {
                         app.curr_error = String::from("Failed to save heightmap");
                         return;
                     }
@@ -318,7 +312,7 @@ fn safe_str_to_f64(app: &mut App, inp: String) -> Result<f64, anyhow::Error> {
         app.curr_error = String::from("Cannot parse variable into a number");
         bail!("Cannot parse into f64!");
     } else {
-        return Ok(inp_f64.unwrap());
+        Ok(inp_f64.unwrap())
     }
 }
 
@@ -347,7 +341,7 @@ fn get_hmap_info(app: &mut App) {
 fn calc_cell_colour(app: &mut App, cell_val: &f32) -> Color {
     //Check to see if the cell height is known
     if cell_val.is_nan() {
-        return Color::Rgb(255, 255, 255);
+        Color::Rgb(255, 255, 255)
     } else {
         let max = app.hmap_max;
         let min = app.hmap_min;
@@ -372,7 +366,7 @@ fn calc_cell_colour(app: &mut App, cell_val: &f32) -> Color {
             )
         };
 
-        return Color::Rgb(r as u8, g as u8, b as u8);
+        Color::Rgb(r as u8, g as u8, b as u8)
     }
 }
 

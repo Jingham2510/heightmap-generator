@@ -37,7 +37,7 @@ pub fn generate_hmap(
         deform_hmap.set_cell_height(cell.1, cell.0, cell.2 as f32);
     }
 
-    return deform_hmap;
+    deform_hmap
 }
 
 ///Create a line indent (trench)
@@ -84,7 +84,7 @@ fn generate_line(
     ];
 
 
-    return create_line(start_point, end_point, core_settings.deform_thickness, core_settings.deform_depth);
+    create_line(start_point, end_point, core_settings.deform_thickness, core_settings.deform_depth)
 
 }
 
@@ -108,7 +108,7 @@ fn generate_circle(
     let center_x = core_settings.deform_center[0];
     let center_y = core_settings.deform_center[1];
 
-    for i in 0..(core_settings.deform_thickness as usize){
+    for _i in 0..(core_settings.deform_thickness as usize){
 
         for j in 0i32..36000{
 
@@ -116,8 +116,8 @@ fn generate_circle(
             let j = f64::from(j) * 0.01;
 
             cells.push((
-                (center_x + ((j as f64 * (PI / 180.0)).sin() * curr_radius)) as usize,
-                (center_y + ((j as f64 * (PI / 180.0)).cos() * curr_radius)) as usize,
+                (center_x + ((j * (PI / 180.0)).sin() * curr_radius)) as usize,
+                (center_y + ((j * (PI / 180.0)).cos() * curr_radius)) as usize,
                 core_settings.deform_depth / 1000.0
             ));
         }
@@ -126,7 +126,7 @@ fn generate_circle(
         curr_radius += 1.0;
     }
 
-    return cells
+    cells
 }
 
 
@@ -158,11 +158,11 @@ fn generate_rectangle(
         corner[1] = (corner[0] * sin_rot) + (corner[1] * cos_rot);
 
         //Offset it by the rectangle center
-        corner[0] = corner[0] + core_settings.deform_center[0];
+        corner[0] += core_settings.deform_center[0];
 
 
 
-        corner[1] = corner[1] + core_settings.deform_center[1];
+        corner[1] += core_settings.deform_center[1];
     }
 
     let mut cells : Vec<(usize, usize, f64)> = vec![];
@@ -174,7 +174,7 @@ fn generate_rectangle(
     cells.append(&mut create_line(corners[0], corners[3], core_settings.deform_thickness, core_settings.deform_depth));
 
 
-    return cells;
+    cells
 }
 
 
@@ -200,13 +200,13 @@ fn create_line(start_point : [f64; 2], end_point : [f64; 2], thickness : f64, de
         for i in 0..(thickness as usize) {
 
             if i % 2 == 0{
-                for j in (0..length as usize){
-                    let y = (gradient * j as f64).abs() + start_point[1] as f64;
+                for j in 0..length as usize {
+                    let y = (gradient * j as f64).abs() + start_point[1];
                     cells.push((j + (start_point[0] as usize), (y + i as f64/2.0)as usize, deform_depth));
                 }
             }else{
-                for j in (0..length as usize){
-                    let y = (gradient * j as f64).abs() + start_point[1] as f64;
+                for j in 0..length as usize {
+                    let y = (gradient * j as f64).abs() + start_point[1];
                     cells.push((j + (start_point[0] as usize), (y - i as f64/2.0)as usize, deform_depth));
                 }
             }     
@@ -216,15 +216,15 @@ fn create_line(start_point : [f64; 2], end_point : [f64; 2], thickness : f64, de
          for i in 0..(thickness as usize) {
 
             if i % 2 == 0{
-                for j in (0..length as usize){
+                for j in 0..length as usize {
                     let x = start_point[0] + (i as f64/2.0);
-                    let y = (j as f64) + start_point[1] as f64;
+                    let y = (j as f64) + start_point[1];
                     cells.push((x as usize, y as usize, deform_depth));
                 }
             }else{
-                for j in (0..length as usize){
+                for j in 0..length as usize {
                     let x = start_point[0] - (i as f64/2.0);
-                    let y = (j as f64) + start_point[1] as f64;
+                    let y = (j as f64) + start_point[1];
                     cells.push((x as usize, y as usize, deform_depth));
                 }
             }     
@@ -235,5 +235,5 @@ fn create_line(start_point : [f64; 2], end_point : [f64; 2], thickness : f64, de
 
 
 
-    return cells
+    cells
 }
