@@ -20,11 +20,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     let [top, main] = frame.area().layout(&layout);
 
     //Render the tab titles
-    let tabs = Tabs::new(vec!["Tab1", "Tab2", "Tab3"])
+    let tabs = Tabs::new(vec!["Heightmap deformation", "Path generation"])
         .style(Color::White)
         .highlight_style(Style::default().magenta().on_black().bold())
         .select(app.tab_no)
-        .divider(symbols::DOT)
+        .divider(symbols::line::HEAVY_TRIPLE_DASH_VERTICAL)
         .padding(" ", " ");
     frame.render_widget(tabs, top);
 
