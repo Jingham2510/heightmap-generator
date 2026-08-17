@@ -59,7 +59,7 @@ fn generate_line(
         core_settings.deform_center[1] - (sin_rot * len / 2.0),
     ];
     let end_point = [
-        core_settings.deform_center[0] + (cos_rot * len/2.0),
+        core_settings.deform_center[0]  + (cos_rot * len/2.0),
         core_settings.deform_center[1] + (sin_rot * len/2.0),
     ];
 
@@ -98,7 +98,7 @@ fn generate_circle(
     core_settings: &CoreSettings,
     deform_settings: &HashMap<String, f64>,
  ) ->Vec<(usize, usize, f64)>{
-    //Get the radius information
+    //Get the radius information in mm
     let radius = deform_settings.get("radius").unwrap();
 
 
@@ -108,15 +108,16 @@ fn generate_circle(
 
     //For the thickness draw each circle a bit further out (starting at radius = radius - thickness/2)
     let mut curr_radius = radius - core_settings.deform_thickness/2.0;
-    let center_x = core_settings.deform_center[0] as usize;
-    let center_y = core_settings.deform_center[1] as usize;
+
+    let center_x = core_settings.deform_center[0];
+    let center_y = core_settings.deform_center[1];
 
     for i in 0..(core_settings.deform_thickness as usize){
 
         for j in 0..360{
             cells.push((
-                center_x + (j as f64 * (PI / 180.0).sin() * radius) as usize,
-                center_y + (j as f64 * (PI / 180.0).cos() * radius) as usize,
+                (center_x + ((j as f64 * (PI / 180.0)).sin() * curr_radius)) as usize,
+                (center_y + ((j as f64 * (PI / 180.0)).cos() * curr_radius)) as usize,
                 core_settings.deform_depth / 1000.0
             ));
         }
