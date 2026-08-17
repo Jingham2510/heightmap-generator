@@ -5,6 +5,7 @@ Used to generate the heightmaps from given inputs from the tui
 use crate::app::{CoreSettings, DeformType};
 use rustgeomapping::data_types::heightmap::Heightmap;
 use std::collections::HashMap;
+use std::f64::consts::PI;
 
 ///Generate a heightmap
 /// We assume that one pixel is one mm (which it is for the current heightmaps)
@@ -25,22 +26,25 @@ pub fn generate_hmap(
         return deform_hmap;
     }
 
-    let deform_hmap  = match core_settings.deform_type {
-        DeformType::LINE => generate_line(deform_hmap, core_settings, deform_settings),
-        DeformType::CIRCLE => {todo!()}
+    let deform_cells = match core_settings.deform_type {
+        DeformType::LINE => generate_line(core_settings, deform_settings),
+        DeformType::CIRCLE => {generate_circle(core_settings, deform_settings)}
         DeformType::RECTANGLE => {todo!()}
         _ => {todo!()}
     };
+
+     for cell in deform_cells{
+        deform_hmap.set_cell_height(cell.1, cell.0, cell.2 as f32);
+    }
 
     return deform_hmap;
 }
 
 ///Create a line indent (trench)
 fn generate_line(
-    mut hmap: Heightmap,
     core_settings: &CoreSettings,
     deform_settings: &HashMap<String, f64>,
-) -> Heightmap{
+) -> Vec<(usize, usize, f64)>{
     //Precalculate some bits we need
     let len = deform_settings.get("length").unwrap();    
 
@@ -73,40 +77,53 @@ fn generate_line(
         if i % 2 == 0{
              for j in (start_point[0] as usize .. end_point[0] as usize){
                 let y = gradient * j as f64 + start_point[1] as f64;
-                cells.push((j, (y + i as f64/2.0)as usize, core_settings.deform_depth));
+                cells.push((j, (y + i as f64/2.0)as usize, core_settings.deform_depth / 1000.0));
             }
         }else{
             for j in (start_point[0] as usize .. end_point[0] as usize){
                 let y = gradient * j as f64 + start_point[1] as f64;
-                cells.push((j as usize, (y - i as f64/2.0)as usize, core_settings.deform_depth));
+                cells.push((j as usize, (y - i as f64/2.0)as usize, core_settings.deform_depth / 1000.0));
             }
         }      
 
     }
 
-    for cell in cells{
-        hmap.set_cell_height(cell.1, cell.0, cell.2 as f32);
-    }
+    return cells;
 
-    return hmap
 }
 
 ///Create a circular indent
 /// NB:Don't need to worry about the rotation for this
-fn generate_circle{
-    mut hmap: Heightmap,
+fn generate_circle(
     core_settings: &CoreSettings,
     deform_settings: &HashMap<String, f64>,
-}{
+ ) ->Vec<(usize, usize, f64)>{
     //Get the radius information
     let radius = deform_settings.get("radius").unwrap();
 
 
     //Create the empty cells
-
+    let mut cells : Vec<(usize, usize, f64)> = vec![];
 
 
     //For the thickness draw each circle a bit further out (starting at radius = radius - thickness/2)
+    let mut curr_radius = radius - core_settings.deform_thickness/2.0;
+    let center_x = core_settings.deform_center[0] as usize;
+    let center_y = core_settings.deform_center[1] as usize;
 
+    for i in 0..(core_settings.deform_thickness as usize){
 
+        for j in 0..360{
+            cells.push((
+                center_x + (j as f64 * (PI / 180.0).sin() * radius) as usize,
+                center_y + (j as f64 * (PI / 180.0).cos() * radius) as usize,
+                core_settings.deform_depth / 1000.0
+            ));
+        }
+
+        //Increase the radius 
+        curr_radius += 1.0;
+    }
+
+    return cells
 }
