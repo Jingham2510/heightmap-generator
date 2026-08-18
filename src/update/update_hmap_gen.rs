@@ -1,10 +1,3 @@
-///Update functions relating to the creation of heightmaps
-/// 
-/// 
-/// 
-/// 
-
-use anyhow::bail;
 
 use crate::update::update_shared::{safe_str_to_f64, calc_cell_colour};
 

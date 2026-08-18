@@ -1,17 +1,10 @@
-use anyhow::bail;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
-use ratatui::style::Color;
 
 use crate::update::update_hmap_gen;
 
-use crate::{
-    app::{App, DeformType, NO_OF_TABS},
-    heightmapgen::generate_hmap,
-};
-use rustgeomapping::data_types::heightmap::Heightmap;
+use crate::app::{App, NO_OF_TABS};
 
-use std::env;
 
 pub fn update(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
@@ -38,12 +31,11 @@ pub fn update(app: &mut App, key_event: KeyEvent) {
             app.curr_input.pop();
         }
         //Accept user confirmation
-        KeyCode::Enter => {
+        KeyCode::Enter
             
-                if app.tab_no == 0{            
+                if app.tab_no == 0=> {            
                     update_hmap_gen::hmap_gen_parse_input(app, app.curr_input.clone())
-                }else{}
-            }
+                }
         _ => {}
         };
 }

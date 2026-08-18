@@ -1,17 +1,10 @@
 ///A collection of widgets used in the 
 use ratatui::{
     Frame,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::Style,
-    symbols,
-    text::{Line, Span},
-    widgets::{
-        Block, Borders, Paragraph, Wrap,
-        canvas::{Canvas},
-    },
+    layout::{Constraint, Direction, Layout, Rect},
 };
 
-use crate::app::{App, DeformType, HeightmapShape};
+use crate::app::App;
 use crate::ui::ui_shared;
 
 
@@ -36,7 +29,7 @@ pub fn pathmoving_core(app : &mut App, frame : &mut Frame, widget : Rect){
 
 
     //Place the path generation control information
-    let control_panel_layout = Layout::default()
+    let _control_panel_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![Constraint::Percentage(15), Constraint::Percentage(15), Constraint::Percentage(15) ,Constraint::Percentage(15),Constraint::Percentage(15)])
         .split(main_layout[0]);
@@ -56,7 +49,7 @@ pub fn pathmoving_core(app : &mut App, frame : &mut Frame, widget : Rect){
 }
 
 ///Render the path generation control panel
-fn render_control_panel(app: &mut App, frame : &mut Frame, widget : Rect){
+fn render_control_panel(_app: &mut App, _frame : &mut Frame, _widget : Rect){
 
 
     //Top control (i.e. heightmaps to compare)
