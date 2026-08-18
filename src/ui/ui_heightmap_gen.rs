@@ -18,7 +18,7 @@ use crate::ui::ui_shared;
 
 ///The main page of the heightmap generator
 /// Consists of 4 widgets - Title, Control Info, Heightmap Renderer, CLI
-pub fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
+pub fn main_page(app: &mut App, frame: &mut Frame, widget: Rect) {
     //Define the main window layout
     let outer_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -26,7 +26,7 @@ pub fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
             Constraint::Percentage(90),
             Constraint::Percentage(10),
         ])
-        .split(area);
+        .split(widget);
 
     //Inner layout that displays the control panel and rendered heightmap
     let main_layout = Layout::default()
@@ -42,13 +42,13 @@ pub fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
 
 
     //Determine the overlay line
-    let overlay_line = if app.overlay_on {
+    let overlay_line = if app.gen_info.overlay_on {
         Line::from("Display overlay: [X]")
     } else {
         Line::from("Display overlay: [ ]")
     };
 
-    let auto_gen_line = if app.auto_generate {
+    let auto_gen_line = if app.gen_info.auto_generate {
         Line::from("Auto generate: [X]")
     } else {
         Line::from("Auto generate: [ ]")
@@ -58,17 +58,17 @@ pub fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
     let cntrl_panel_text = vec![
         Line::from(format!(
             "Pos X: {}       Pos Y: {}",
-            app.core_settings.deform_center[0], app.core_settings.deform_center[1]
+            app.gen_info.core_settings.deform_center[0], app.gen_info.core_settings.deform_center[1]
         )),
         Line::from(format!(
             " Rotation (degs): {}",
-            app.core_settings.deform_rotation
+            app.gen_info.core_settings.deform_rotation
         )),
         Line::from(format!(
             "Thickness (mm): {}",
-            app.core_settings.deform_thickness
+            app.gen_info.core_settings.deform_thickness
         )),
-        Line::from(format!("Depth (mm): {}", app.core_settings.deform_depth)),
+        Line::from(format!("Depth (mm): {}", app.gen_info.core_settings.deform_depth)),
         overlay_line,
         auto_gen_line,
     ];
@@ -89,7 +89,7 @@ pub fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
     );
 
     //Render the deformation control panel
-    match app.core_settings.deform_type {
+    match app.gen_info.core_settings.deform_type {
         DeformType::NONE => none_cntrl_panel(frame, cntrl_panel_layout[1]),
         DeformType::LINE | DeformType::CIRCLE | DeformType::RECTANGLE => {
             shape_cntrl_panel(app, frame, cntrl_panel_layout[1])
@@ -97,7 +97,7 @@ pub fn main_page(app: &mut App, frame: &mut Frame, area: Rect) {
     }
 
     //Render the heightmap
-    if app.hmap_loaded {
+    if app.gen_info.hmap_loaded {
         render_heightmap(app, frame, main_layout[1])
     } else {
         frame.render_widget(
@@ -132,7 +132,7 @@ fn shape_cntrl_panel(app: &mut App, frame: &mut Frame, widget: Rect) {
     //Set the title
     let mut setting_lines = vec![
         Line::from(Span::styled(
-            format!("Deformation: {}", app.core_settings.deform_type.to_string()),
+            format!("Deformation: {}", app.gen_info.core_settings.deform_type.to_string()),
             Style::new().bold(),
         ))
         .centered(),
@@ -144,7 +144,7 @@ fn shape_cntrl_panel(app: &mut App, frame: &mut Frame, widget: Rect) {
     ];
 
     //Go through each entry in the hashmap and add it as a line to the paragraph to be rendered
-    for (setting, value) in &app.deform_settings {
+    for (setting, value) in &app.gen_info.deform_settings {
         setting_lines.push(Line::from(format!("{}: {}", setting, value)))
     }
 
@@ -168,10 +168,10 @@ fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect) {
     frame.render_widget(
         Paragraph::new(Line::from(format!(
             "Stats: Min depth:{}mm Max depth:{}mm  Pixel height:{} Pixel Width:{}",
-            app.hmap_min,
-            app.hmap_max,
-            app.loaded_hmap.height() + 1,
-            app.loaded_hmap.width() + 1
+            app.gen_info.hmap_min,
+            app.gen_info.hmap_max,
+            app.gen_info.loaded_hmap.height() + 1,
+            app.gen_info.loaded_hmap.width() + 1
         )))
         .block(Block::new().borders(Borders::ALL)),
         data_layout[0],
@@ -179,18 +179,18 @@ fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect) {
 
     //Display the precreated points
     //This method of pre-calculating saves a lot of energy when refreshing the frame
-    if app.overlay_on {
+    if app.gen_info.overlay_on {
         let canvas = Canvas::default()
             .block(Block::bordered().title("Current heightmap"))
-            .x_bounds([0.0, app.loaded_hmap.width() as f64])
-            .y_bounds([0.0, app.loaded_hmap.height() as f64])
+            .x_bounds([0.0, app.gen_info.loaded_hmap.width() as f64])
+            .y_bounds([0.0, app.gen_info.loaded_hmap.height() as f64])
             .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
             .paint(|ctx| {
                 ctx.draw(&HeightmapShape {
-                    cells: &app.hmap_cells,
+                    cells: &app.gen_info.hmap_cells,
                 });
                 ctx.draw(&HeightmapShape {
-                    cells: &app.generated_cells,
+                    cells: &app.gen_info.generated_cells,
                 })
             });
 
@@ -199,12 +199,12 @@ fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect) {
     } else {
         let canvas = Canvas::default()
             .block(Block::bordered().title("Current heightmap"))
-            .x_bounds([0.0, app.loaded_hmap.width() as f64])
-            .y_bounds([0.0, app.loaded_hmap.height() as f64])
+            .x_bounds([0.0, app.gen_info.loaded_hmap.width() as f64])
+            .y_bounds([0.0, app.gen_info.loaded_hmap.height() as f64])
             .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
             .paint(|ctx| {
                 ctx.draw(&HeightmapShape {
-                    cells: &app.hmap_cells,
+                    cells: &app.gen_info.hmap_cells,
                 });
             });
 

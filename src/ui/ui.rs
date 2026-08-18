@@ -7,8 +7,7 @@ use ratatui::{
 };
 
 use crate::{
-    app::App,
-    ui::ui_heightmap_gen
+    app::App, ui::{ui_heightmap_gen, ui_pathmoving_gen}
     };
 
 
@@ -29,7 +28,11 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     frame.render_widget(tabs, top);
 
     //Render the page based on the tab selection
-    if app.tab_no == 0{
-        ui_heightmap_gen::main_page(app, frame,main)
-    }
+    match app.tab_no{
+       0 => ui_heightmap_gen::main_page(app, frame,main),
+       1 => ui_pathmoving_gen::pathmoving_core(app, frame, main),
+
+       other=>{panic!("Tab number {other} should be impossible!")}
+    };
+    
 }

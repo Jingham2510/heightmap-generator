@@ -10,7 +10,6 @@ pub mod tui;
 ///User interface controller
 pub mod ui;
 
-/// Application updater.
 pub mod update;
 
 ///Heightmap generator
@@ -21,7 +20,7 @@ use app::App;
 use event::{Event, EventHandler};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use tui::Tui;
-use update::update;
+use crate::update::update_core::update;
 
 fn main() -> Result<()> {
     // Create an application.

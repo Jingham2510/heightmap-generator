@@ -84,6 +84,31 @@ impl<'a> Shape for HeightmapShape<'a> {
     }
 }
 
+#[derive(Default)]
+pub struct hmap_gen_info{
+    ///Deformation setup info and associated variables
+    pub deform_settings: HashMap<String, f64>,
+
+    ///Deformation position and rotation (degrees)
+    pub core_settings: CoreSettings,
+
+    pub overlay_on: bool,
+
+
+
+    ///Currently loaded heightmap
+    pub hmap_loaded: bool,
+    pub loaded_hmap: Heightmap,
+    pub hmap_min: f32,
+    pub hmap_max: f32,
+    pub hmap_fp: String,
+    pub hmap_cells: Vec<(f64, f64, Color)>,
+
+    //Generated deformation
+    pub generated_hmap: Heightmap,
+    pub generated_cells: Vec<(f64, f64, Color)>,
+    pub auto_generate: bool,
+}
 
 
 ///Number of tab pages in the application
@@ -99,30 +124,14 @@ pub struct App {
     ///Tab selection
     pub tab_no : usize,
 
-    ///Deformation setup info and associated variables
-    pub deform_settings: HashMap<String, f64>,
-
-    ///Deformation position and rotation (degrees)
-    pub core_settings: CoreSettings,
-
-    pub overlay_on: bool,
-
     ///Current CLI input
     pub curr_error: String,
     pub curr_input: String,
 
-    ///Currently loaded heightmap
-    pub hmap_loaded: bool,
-    pub loaded_hmap: Heightmap,
-    pub hmap_min: f32,
-    pub hmap_max: f32,
-    pub hmap_fp: String,
-    pub hmap_cells: Vec<(f64, f64, Color)>,
+    ///Heightmap generation information
+    pub gen_info : hmap_gen_info
 
-    //Generated deformation
-    pub generated_hmap: Heightmap,
-    pub generated_cells: Vec<(f64, f64, Color)>,
-    pub auto_generate: bool,
+  
 }
 
 impl App {
