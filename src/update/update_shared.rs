@@ -30,8 +30,8 @@ pub fn calc_cell_colour(app: &mut App, cell_val: &f32) -> Color {
     if cell_val.is_nan() {
         Color::Rgb(255, 255, 255)
     } else {
-        let max = app.gen_info.hmap_max;
-        let min = app.gen_info.hmap_min;
+        let max = app.hmap_gen_info.hmap_max;
+        let min = app.hmap_gen_info.hmap_min;
         let range = max - min;
         let median = min + range / 2.0;
 

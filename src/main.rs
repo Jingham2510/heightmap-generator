@@ -15,6 +15,9 @@ pub mod update;
 ///Heightmap generator
 pub mod heightmapgen;
 
+///Trajectory generator
+pub mod pathgen;
+
 use anyhow::Result;
 use app::App;
 use event::{Event, EventHandler};

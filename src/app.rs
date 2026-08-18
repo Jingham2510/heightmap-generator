@@ -6,6 +6,8 @@ use ratatui::{
     widgets::canvas::{Painter, Shape},
 };
 
+use crate::pathgen::{DetectionMode, PathGenMode};
+
 ///Types of deformation
 #[derive(Debug, Default)]
 pub enum DeformType {
@@ -84,6 +86,8 @@ impl<'a> Shape for HeightmapShape<'a> {
     }
 }
 
+
+///Information and settings required for creating heightmap deformations
 #[derive(Default)]
 pub struct hmap_gen_info{
     ///Deformation setup info and associated variables
@@ -111,6 +115,29 @@ pub struct hmap_gen_info{
 }
 
 
+///Information and settings required for generation trajectory paths
+#[derive(Default)]
+pub struct path_gen_info{
+    ///Current heightmap filepath
+    pub current_map_fp : String,
+    ///Target heightmap filepath
+    pub target_map_fp : String,
+
+    ///Current heightmap
+    pub current_map : Heightmap,
+    /// Target heightmap
+    pub target_map : Heightmap,
+
+
+    ///Detection mode
+    pub detect_mode : DetectionMode,
+
+    ///Path generation mode
+    pub path_mode : PathGenMode,
+
+}
+
+
 ///Number of tab pages in the application
  pub const NO_OF_TABS : usize = 1;
 
@@ -129,7 +156,10 @@ pub struct App {
     pub curr_input: String,
 
     ///Heightmap generation information
-    pub gen_info : hmap_gen_info
+    pub hmap_gen_info : hmap_gen_info,
+
+    pub path_gen_info : path_gen_info,   
+
 
   
 }

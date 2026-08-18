@@ -1,10 +1,9 @@
 ///A collection of widgets used in the 
 use ratatui::{
-    Frame,
-    layout::{Constraint, Direction, Layout, Rect},
+    Frame, layout::{Alignment, Constraint, Direction, Layout, Rect}, style::Style, text::{Line, Span}, widgets::{Block, Borders, Paragraph, Wrap},
 };
 
-use crate::app::App;
+use crate::app::{App, path_gen_info};
 use crate::ui::ui_shared;
 
 
@@ -28,18 +27,15 @@ pub fn pathmoving_core(app : &mut App, frame : &mut Frame, widget : Rect){
         .split(outer_layout[0]);
 
 
-    //Place the path generation control information
-    let _control_panel_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(vec![Constraint::Percentage(15), Constraint::Percentage(15), Constraint::Percentage(15) ,Constraint::Percentage(15),Constraint::Percentage(15)])
-        .split(main_layout[0]);
+   
+    render_control_panel(app, frame, main_layout[0]);
 
 
 
 
-
-    //Heightmap render block (different to the map generation so slightly rewritten)
-
+    //Render path generation block
+    render_path_gen_image(app, frame,main_layout[1]);
+        
 
 
     //Place the CLI
@@ -49,16 +45,101 @@ pub fn pathmoving_core(app : &mut App, frame : &mut Frame, widget : Rect){
 }
 
 ///Render the path generation control panel
-fn render_control_panel(_app: &mut App, _frame : &mut Frame, _widget : Rect){
+fn render_control_panel(app: &mut App, frame : &mut Frame, widget : Rect){
+
+     //Create the path generation control layout
+     //TODO: can rearrange fill priority based on textual requirements
+    let control_panel_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10),Constraint::Percentage(5), Constraint::Fill(1) ,Constraint::Percentage(8),Constraint::Fill(1)])
+        .split(widget);
 
 
     //Top control (i.e. heightmaps to compare)
 
+    let hmap_lines : Vec<Line> = vec![
+                                Line::from(format!("Current map: {}", app.path_gen_info.current_map_fp)), 
+                                Line::from(format!("Target map: {}", app.path_gen_info.target_map_fp))];
 
-    
 
 
+     frame.render_widget(
+        Paragraph::new(hmap_lines)
+            .block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .title(Line::from(Span::styled(
+                        "Loaded terrains",
+                        Style::new().bold(),
+                    ))),
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        control_panel_layout[0],
+    );
 
+
+    let detect_lines : Vec<Line> = vec![
+        Line::from(format!("Detection mode: {}", app.path_gen_info.detect_mode))
+    ];
+
+
+    //Detection setting display
+    frame.render_widget(
+        Paragraph::new(detect_lines)
+            .block(
+                Block::new()
+                    .borders(Borders::ALL)
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        control_panel_layout[1],
+    );
+
+    //Detection settings set
+    frame.render_widget(
+        Paragraph::new("Detection settings")
+            .block(
+                Block::new()
+                .borders(Borders::ALL)
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        control_panel_layout[2],
+    );
+
+    let path_lines : Vec<Line> = vec![
+        Line::from(format!("Path generation mode: {}", app.path_gen_info.path_mode))
+    ];
+
+
+    //Detection setting display
+    frame.render_widget(
+        Paragraph::new(path_lines)
+            .block(
+                Block::new()
+                    .borders(Borders::ALL)
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        control_panel_layout[3],
+    );
+
+    //Detection settings set
+    frame.render_widget(
+        Paragraph::new("Generation settings")
+            .block(
+                Block::new()
+                .borders(Borders::ALL)
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        control_panel_layout[4],
+    );
 
 }
+
+
+///Render the path generation imaging
+fn render_path_gen_image(app: &mut App, frame : &mut Frame, widget : Rect){}
  
