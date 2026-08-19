@@ -279,7 +279,7 @@ fn get_hmap_info(app: &mut App) {
     //Heightmap drawing function - reverse to draw and match pyplot
     for row in app.hmap_gen_info.loaded_hmap.cells().into_iter().rev() {
         for cell in row {
-            let cell_colour = calc_cell_colour(app, &cell);
+            let cell_colour = calc_cell_colour(app.hmap_gen_info.hmap_max, app.hmap_gen_info.hmap_min,&cell, 0);
 
             app.hmap_gen_info.hmap_cells.push((col_cnt, row_cnt, cell_colour));
             col_cnt += 1.0;
@@ -305,7 +305,7 @@ fn create_generated_cells(app: &mut App) {
                 continue;
             }
 
-            let cell_colour = calc_cell_colour(app, &cell);
+            let cell_colour = calc_cell_colour(app.hmap_gen_info.generated_hmap.max(), app.hmap_gen_info.generated_hmap.min(),&cell, 0);
 
             app.hmap_gen_info.generated_cells.push((col_cnt, row_cnt, cell_colour));
             col_cnt += 1.0;

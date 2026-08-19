@@ -1,9 +1,9 @@
 ///A collection of widgets used in the 
 use ratatui::{
-    Frame, layout::{Alignment, Constraint, Direction, Layout, Rect}, style::Style, text::{Line, Span}, widgets::{Block, Borders, Paragraph, Wrap},
+    Frame, layout::{Alignment, Constraint, Direction, Layout, Rect}, style::Style, symbols, text::{Line, Span}, widgets::{Block, Borders, Paragraph, Wrap, canvas::Canvas},
 };
 
-use crate::app::{App, path_gen_info};
+use crate::app::{App, HeightmapShape, path_gen_info};
 use crate::ui::ui_shared;
 
 
@@ -29,8 +29,6 @@ pub fn pathmoving_core(app : &mut App, frame : &mut Frame, widget : Rect){
 
    
     render_control_panel(app, frame, main_layout[0]);
-
-
 
 
     //Render path generation block
@@ -141,5 +139,37 @@ fn render_control_panel(app: &mut App, frame : &mut Frame, widget : Rect){
 
 
 ///Render the path generation imaging
-fn render_path_gen_image(app: &mut App, frame : &mut Frame, widget : Rect){}
+fn render_path_gen_image(app: &mut App, frame : &mut Frame, widget : Rect){
+
+
+    if !app.path_gen_info.diff_map_generated{
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                "No difference map generated",
+                Style::new().bold(),
+            )))
+            .block(Block::bordered().title("Difference map"))
+            .centered(),
+            widget);
+
+    }else{
+        let canvas = Canvas::default()
+            .block(Block::bordered().title("Difference heightmap"))
+            .x_bounds([0.0, app.path_gen_info.difference_width as f64])
+            .y_bounds([0.0, app.path_gen_info.difference_height as f64])
+            .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
+            .paint(|ctx| {
+                ctx.draw(&HeightmapShape{
+                    cells: &app.path_gen_info.diff_map_cells
+                });
+            });
+
+        //Create the canvas
+        frame.render_widget(canvas, widget)
+    }
+
+
+
+
+}
  

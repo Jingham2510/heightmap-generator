@@ -200,14 +200,16 @@ fn create_line(start_point : [f64; 2], end_point : [f64; 2], thickness : f64, de
         for i in 0..(thickness as usize) {
 
             if i % 2 == 0{
-                for j in 0..length as usize {
+                for j in 0..(length * 10.0) as usize {
+                    let j = j as i16 /10;
                     let y = (gradient * j as f64).abs() + start_point[1];
-                    cells.push((j + (start_point[0] as usize), (y + i as f64/2.0)as usize, deform_depth));
+                    cells.push((j as usize + (start_point[0] as usize), (y + i as f64/2.0)as usize, deform_depth));
                 }
             }else{
-                for j in 0..length as usize {
+                for j in 0..(length * 10.0) as usize{
+                    let j = j as i16 /10;
                     let y = (gradient * j as f64).abs() + start_point[1];
-                    cells.push((j + (start_point[0] as usize), (y - i as f64/2.0)as usize, deform_depth));
+                    cells.push((j as usize + (start_point[0] as usize), (y - i as f64/2.0)as usize, deform_depth));
                 }
             }     
         }
@@ -216,13 +218,15 @@ fn create_line(start_point : [f64; 2], end_point : [f64; 2], thickness : f64, de
          for i in 0..(thickness as usize) {
 
             if i % 2 == 0{
-                for j in 0..length as usize {
+                for j in 0..(length * 10.0) as usize{
+                    let j = j as i16 /10;
                     let x = start_point[0] + (i as f64/2.0);
                     let y = (j as f64) + start_point[1];
                     cells.push((x as usize, y as usize, deform_depth));
                 }
             }else{
-                for j in 0..length as usize {
+                for j in 0..(length * 10.0) as usize{
+                    let j = j as i16 /10;
                     let x = start_point[0] - (i as f64/2.0);
                     let y = (j as f64) + start_point[1];
                     cells.push((x as usize, y as usize, deform_depth));

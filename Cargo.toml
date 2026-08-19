@@ -7,4 +7,4 @@ edition = "2024"
 anyhow = "1.0.104"
 crossterm = "0.29.0"
 ratatui = "0.30.2"
-rustgeomapping = {git = "https://github.com/Jingham2510/rustgeomapping"}
+rustgeomapping = {git = "https://github.com/Jingham2510/rustgeomapping", features=["analysis"]}

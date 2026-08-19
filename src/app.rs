@@ -128,6 +128,13 @@ pub struct path_gen_info{
     /// Target heightmap
     pub target_map : Heightmap,
 
+    ///Difference map (i.e. the difference between the target and the current map)
+    pub diff_map_generated : bool,
+    pub difference_map : Heightmap,
+    pub difference_width : usize,
+    pub difference_height : usize,
+    pub diff_map_cells: Vec<(f64, f64, Color)>,
+
 
     ///Detection mode
     pub detect_mode : DetectionMode,
@@ -158,6 +165,7 @@ pub struct App {
     ///Heightmap generation information
     pub hmap_gen_info : hmap_gen_info,
 
+    ///Earthmoving path generation information
     pub path_gen_info : path_gen_info,   
 
 
