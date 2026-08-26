@@ -6,7 +6,7 @@ use ratatui::{
     widgets::canvas::{Painter, Shape},
 };
 
-use crate::pathgen::{DetectionMode, PathGenMode};
+use crate::pathgen::{DetectionMode, PathGenMode, types::Edge};
 
 ///Types of deformation
 #[derive(Debug, Default)]
@@ -139,6 +139,9 @@ pub struct path_gen_info{
     ///Detection mode
     pub detect_mode : DetectionMode,
     pub detect_info : HashMap<String, f64>,
+    pub detected_edges : Vec<Edge>,
+    ///The cells that require drawing to display edges
+    pub edge_cells : Vec<(f64, f64, Color)>,
 
     ///Path generation mode
     pub path_mode : PathGenMode,

@@ -16,11 +16,15 @@ impl Point{
             y
         }
     }
+
+    fn as_xy(&self) -> (usize, usize){
+        (self.x, self.y)
+    }
 }
 
 
 //Indicates a direction from a cell (where north is up)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Direction{
     NORTH,
     EAST,
@@ -52,5 +56,12 @@ impl Edge{
     pub fn dir(&self) -> Vec<Direction>{
         self.dir.clone()
     }
+
+
+    pub fn pos_f64(&self) -> (f64, f64){
+        let (x, y) = self.cell.as_xy();
+        (x as f64, y as f64)
+    }
+
 }
 

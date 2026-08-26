@@ -9,6 +9,7 @@ use crate::pathgen::{edgedetection, types::Direction};
 use crate::{
     app::{App}
 };
+use ratatui::style::Color;
 use rustgeomapping::data_types::heightmap::Heightmap;
 use rustgeomapping::analysis::analyser::comp_maps;
 
@@ -208,26 +209,11 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                     match app.path_gen_info.detect_mode{
                         DetectionMode::TESTING =>{
-                            let edges = edgedetection::simple(&app.path_gen_info.difference_map);
+                            //Detect the edges
+                            app.path_gen_info.detected_edges = edgedetection::simple(&app.path_gen_info.difference_map);
 
-                            let mut w_count = 0;
-                            let mut n_count = 0;
-                            let mut e_count = 0;
-                            let mut s_count = 0;
-                            for edge in edges{
-                                for dir in edge.dir(){
-                                    match dir{
-                                        Direction::NORTH =>{n_count+=1},
-                                        Direction::EAST =>{e_count+=1},
-                                        Direction::SOUTH=>{s_count+=1},
-                                        Direction::WEST=>{w_count+=1},
-                                        _ => {}
-                                    }
-                                }
-                            }
-
-                            println!("N:{} E:{} S:{} W:{}", n_count, e_count, s_count, w_count);
-
+                            //Create the edge shapes
+                            app.path_gen_info.edge_cells = create_edge_shapes(app);
 
                         }
                     }
@@ -277,5 +263,64 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
     Ok(())
 
+
+}
+
+
+
+//Go through each edge and determine where to draw the lines
+fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
+
+    let mut cells : Vec<(f64, f64, Color)> = vec![];
+
+    //For each edge determine which parts to add to the edge cells
+    for edge in &app.path_gen_info.detected_edges{
+
+        let (x, mut y) = edge.pos_f64();
+
+        //remembering that its top to bottom for cell rendering
+        y = app.path_gen_info.difference_height as f64 - y;
+
+        for dir in edge.dir(){
+
+            match dir{                
+                Direction::NORTH =>{
+                    cells.push((x, y - 0.5, Color::Black));
+                }
+                
+                Direction::NORTHEAST =>{
+                    cells.push((x + 0.5, y - 0.5, Color::Black));
+                }
+                 Direction::EAST =>{
+                    cells.push((x + 0.5, y, Color::Black));
+                }
+                Direction::SOUTHEAST =>{
+                    cells.push((x + 0.5, y + 0.5, Color::Black));
+                }
+                Direction::SOUTH =>{
+                    cells.push((x, y + 0.5, Color::Black));
+                }
+                Direction::SOUTHWEST =>{
+                    cells.push((x - 0.5, y + 0.5, Color::Black));
+                }
+                 Direction::WEST =>{
+                    cells.push((x - 0.5, y, Color::Black));
+                }
+                Direction::NORTHWEST =>{
+                    cells.push((x - 0.5, y - 0.5, Color::Black));
+                }
+                
+
+                _ =>{}
+            }
+
+
+
+        }
+
+
+    }
+
+    return cells;
 
 }

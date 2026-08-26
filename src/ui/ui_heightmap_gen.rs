@@ -179,38 +179,28 @@ fn render_heightmap(app: &mut App, frame: &mut Frame, widget: Rect) {
 
     //Display the precreated points
     //This method of pre-calculating saves a lot of energy when refreshing the frame
-    if app.hmap_gen_info.overlay_on {
-        let canvas = Canvas::default()
-            .block(Block::bordered().title("Current heightmap"))
-            .x_bounds([0.0, app.hmap_gen_info.loaded_hmap.width() as f64])
-            .y_bounds([0.0, app.hmap_gen_info.loaded_hmap.height() as f64])
-            .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
-            .paint(|ctx| {
-                ctx.draw(&HeightmapShape {
-                    cells: &app.hmap_gen_info.hmap_cells,
-                });
+
+    let canvas = Canvas::default()
+        .block(Block::bordered().title("Current heightmap"))
+        .x_bounds([0.0, app.hmap_gen_info.loaded_hmap.width() as f64])
+        .y_bounds([0.0, app.hmap_gen_info.loaded_hmap.height() as f64])
+        .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
+        .paint(|ctx| {
+            ctx.draw(&HeightmapShape {
+                cells: &app.hmap_gen_info.hmap_cells,
+            });
+
+
+            if app.hmap_gen_info.overlay_on {
                 ctx.draw(&HeightmapShape {
                     cells: &app.hmap_gen_info.generated_cells,
                 })
-            });
+            }
+        });
 
-        //Create the canvas
-        frame.render_widget(canvas, data_layout[1])
-    } else {
-        let canvas = Canvas::default()
-            .block(Block::bordered().title("Current heightmap"))
-            .x_bounds([0.0, app.hmap_gen_info.loaded_hmap.width() as f64])
-            .y_bounds([0.0, app.hmap_gen_info.loaded_hmap.height() as f64])
-            .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
-            .paint(|ctx| {
-                ctx.draw(&HeightmapShape {
-                    cells: &app.hmap_gen_info.hmap_cells,
-                });
-            });
-
-        //Create the canvas
-        frame.render_widget(canvas, data_layout[1])
-    }
+    //Create the canvas
+    frame.render_widget(canvas, data_layout[1])
+    
 }
 
 

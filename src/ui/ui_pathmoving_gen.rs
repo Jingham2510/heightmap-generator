@@ -167,19 +167,31 @@ fn render_path_gen_image(app: &mut App, frame : &mut Frame, widget : Rect){
             widget);
 
     }else{
+
         let canvas = Canvas::default()
             .block(Block::bordered().title("Difference heightmap"))
             .x_bounds([0.0, app.path_gen_info.difference_width as f64])
             .y_bounds([0.0, app.path_gen_info.difference_height as f64])
             .marker(symbols::Marker::HalfBlock) //Half block displays the resolution the best
             .paint(|ctx| {
+
+
                 ctx.draw(&HeightmapShape{
                     cells: &app.path_gen_info.diff_map_cells
                 });
+
+                //Draw the edge cells if required
+                if !app.path_gen_info.edge_cells.is_empty(){
+                    ctx.layer();
+                    ctx.draw(&HeightmapShape{
+                        cells: &app.path_gen_info.edge_cells
+                    });
+                }
             });
 
         //Create the canvas
         frame.render_widget(canvas, widget)
+
     }
 
 

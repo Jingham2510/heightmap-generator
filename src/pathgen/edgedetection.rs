@@ -13,12 +13,12 @@ pub fn simple(hmap : &Heightmap) -> Vec<Edge>{
     //Go through every column (ignoring edges)
     for i in 1..hmap.width() - 1{
         //Go through every row (ignoring edges)
-        for j in 1..hmap.height() - 1{
+        for j in (1..hmap.height() - 1).rev(){
 
             //Get the cell value
             let cell_val = hmap.get_cell_height(i, j).unwrap();
 
-            //Check if the cell is nan or zero 
+            //Ignore if the cell is nan or zero 
             if cell_val.is_nan() || cell_val == 0.0{
                 continue;
             }            
@@ -28,7 +28,7 @@ pub fn simple(hmap : &Heightmap) -> Vec<Edge>{
             if dirs.is_empty(){
                 continue;
             }else{
-                //If edges exist create the edge object
+                //If edges exist create the edge object 
                 edges.push(Edge::create(i, j, dirs))
             }
         }
@@ -48,10 +48,10 @@ fn check_surrounding(hmap : &Heightmap, i : isize, j : isize) -> Vec<Direction>{
 
     let mut dirs : Vec<Direction> = vec![];
 
-    for row in -1..=1{
-        for col in -1..=1{
+    for col in -1..=1{
+        for row in -1..=1{
 
-            let val = hmap.get_cell_height((i + row) as usize, (j + col) as usize).unwrap();
+            let val = hmap.get_cell_height((i + col) as usize, (j + row) as usize).unwrap();
 
             //Get the cell value
             if val.is_nan() || val == 0.0{
