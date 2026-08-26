@@ -95,16 +95,7 @@ fn render_control_panel(app: &mut App, frame : &mut Frame, widget : Rect){
     );
 
     //Detection settings set
-    frame.render_widget(
-        Paragraph::new("Detection settings")
-            .block(
-                Block::new()
-                .borders(Borders::ALL)
-            )
-            .alignment(Alignment::Center)
-            .wrap(Wrap { trim: true }),
-        control_panel_layout[2],
-    );
+   render_detect_settings(app, frame, control_panel_layout[2]);
 
     let path_lines : Vec<Line> = vec![
         Line::from(format!("Path generation mode: {}", app.path_gen_info.path_mode))
@@ -135,6 +126,29 @@ fn render_control_panel(app: &mut App, frame : &mut Frame, widget : Rect){
         control_panel_layout[4],
     );
 
+}
+
+///Render the current detection settings
+fn render_detect_settings(app: &mut App, frame:&mut Frame, widget : Rect){
+
+    //Construct the detection settings list
+    let mut setting_lines : Vec<Line> = vec![Line::from("Detection settings")];
+
+    for (setting, value) in &app.path_gen_info.detect_info{
+        setting_lines.push(Line::from(format!("{}: {}", setting, value)))
+    }
+
+
+     frame.render_widget(
+        Paragraph::new(setting_lines)
+            .block(
+                Block::new()
+                .borders(Borders::ALL)
+            )
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true }),
+        widget,
+    );
 }
 
 

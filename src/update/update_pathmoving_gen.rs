@@ -1,5 +1,9 @@
+use crate::app::path_gen_info;
+use crate::pathgen::DetectionMode;
 ///App updating related to path/trajectory generation
-use crate::update::update_shared::{self, calc_cell_colour, safe_str_to_f64};
+use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
+use crate::pathgen::{edgedetection, types::Direction};
+
 
 
 use crate::{
@@ -77,6 +81,59 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
             }
         }
 
+        //Seutp the bits and bobs
+        "set" =>{
+            match var.as_str(){
+                //Set the detection mode
+                "detmode" =>{
+                    match opt_var.as_str() {
+
+                        "testing" => {
+                            app.path_gen_info.detect_mode = DetectionMode::TESTING;
+                            app.path_gen_info.detect_info = DetectionMode::TESTING.get_default_settings();
+
+                        }
+
+                        _ => {
+                            app.curr_error = String::from("invalid detection mode");
+                            bail!("Invalid detection mode");
+                        }
+                    }
+                }
+
+
+                //Check to see if its a mode option
+                _ => {
+                    //See if it is a setting in the shapes setting hashmap
+                    if app.path_gen_info.detect_info.contains_key(&var) {
+                        let new_val = safe_str_to_f64(app, opt_var);
+                        if new_val.is_ok() {
+                            app.path_gen_info.detect_info
+                                .entry(var)
+                                .insert_entry(new_val.unwrap());
+                        } else {
+                            bail!("cmd error")
+                        }
+                    }else if app.path_gen_info.path_info.contains_key(&var) {
+                        let new_val = safe_str_to_f64(app, opt_var);
+                        if new_val.is_ok() {
+                            app.path_gen_info.path_info
+                                .entry(var)
+                                .insert_entry(new_val.unwrap());
+                        } else {
+                            bail!("cmd error")
+                        }
+                    } 
+                    else {
+                        app.curr_error = String::from("Invalid set option!");
+                        bail!("cmd error")
+                    }
+                }
+            }
+        }
+
+
+
         //Generate things (difference map, points, path etc)
         "generate" => {
 
@@ -142,12 +199,47 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                 }
 
+                //Generate the points for the trajectory
+                "points" =>{
+                    if !app.path_gen_info.diff_map_generated{
+                        app.curr_error = String::from("No difference map generated");
+                        bail!("no diff map")
+                    }
+
+                    match app.path_gen_info.detect_mode{
+                        DetectionMode::TESTING =>{
+                            let edges = edgedetection::simple(&app.path_gen_info.difference_map);
+
+                            let mut w_count = 0;
+                            let mut n_count = 0;
+                            let mut e_count = 0;
+                            let mut s_count = 0;
+                            for edge in edges{
+                                for dir in edge.dir(){
+                                    match dir{
+                                        Direction::NORTH =>{n_count+=1},
+                                        Direction::EAST =>{e_count+=1},
+                                        Direction::SOUTH=>{s_count+=1},
+                                        Direction::WEST=>{w_count+=1},
+                                        _ => {}
+                                    }
+                                }
+                            }
+
+                            println!("N:{} E:{} S:{} W:{}", n_count, e_count, s_count, w_count);
+
+
+                        }
+                    }
+
+
+                }
+
                 _=>{
                     app.curr_error = String::from("Invalid generate option");
                     bail!("cmd error")
                 }
             }
-
 
         }
 

@@ -138,9 +138,11 @@ pub struct path_gen_info{
 
     ///Detection mode
     pub detect_mode : DetectionMode,
+    pub detect_info : HashMap<String, f64>,
 
     ///Path generation mode
     pub path_mode : PathGenMode,
+    pub path_info : HashMap<String, f64>,
 
 }
 
