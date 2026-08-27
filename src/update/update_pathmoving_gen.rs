@@ -1,4 +1,4 @@
-use crate::pathgen::DetectionMode;
+use crate::pathgen::{self, DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
 use crate::pathgen::{edgedetection, types::Direction};
@@ -88,9 +88,9 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                 "detmode" =>{
                     match opt_var.as_str() {
 
-                        "testing" => {
-                            app.path_gen_info.detect_mode = DetectionMode::TESTING;
-                            app.path_gen_info.detect_info = DetectionMode::TESTING.get_default_settings();
+                        "simple" => {
+                            app.path_gen_info.detect_mode = DetectionMode::SIMPLE;
+                            app.path_gen_info.detect_info = DetectionMode::SIMPLE.get_default_settings();
 
                         }
 
@@ -206,18 +206,32 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                         bail!("no diff map")
                     }
 
+                    //Detect the deformation shapes and generate the inner points
                     match app.path_gen_info.detect_mode{
-                        DetectionMode::TESTING =>{
-                            //Detect the edges
+                        DetectionMode::SIMPLE =>{
+                            
                             app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
 
                             //Create the edge shapes
                             app.path_gen_info.edge_cells = create_edge_shapes(app);
 
+                            app.path_gen_info.generated_points = pointgen::simple(&app.path_gen_info);
+                          
+
+                        }
+                    }           
+
+
+                }
+
+                //Generate the path from the created points
+                "path" =>{
+
+                    match app.path_gen_info.path_mode{
+                        PathGenMode::TESTING =>{
+                            
                         }
                     }
-
-
                 }
 
                 _=>{

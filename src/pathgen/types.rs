@@ -1,5 +1,6 @@
 use std::ops::{Add, Div};
- 
+use std::collections::HashMap;
+use std::f64;
 
 ///A point which describes a cell location
 #[derive(Debug, Default, Clone, Copy)]
@@ -10,12 +11,20 @@ pub struct Point{
 
 impl Point{
     ///Create a point
-    fn create(x : usize, y :usize) -> Self{
+    pub fn create(x : usize, y :usize) -> Self{
         Point{
             x,
             y
         }
     }
+
+    pub fn add_x(&mut self, x : usize){
+        self.x += x
+    }
+    pub fn add_y(&mut self, y : usize){
+        self.x += y
+    }
+
 
     pub fn as_xy(&self) -> (usize, usize){
         (self.x, self.y)
@@ -23,6 +32,13 @@ impl Point{
 
     pub fn as_xy_f64(&self) -> (f64, f64){
         (self.x as f64, self.y as f64)
+    }
+
+    pub fn x(&self) -> usize{
+        self.x
+    }
+    pub fn y(&self) -> usize{
+        self.y
     }
 }
 
@@ -99,11 +115,26 @@ impl Edge{
 
     pub fn pos(&self) -> (usize, usize){
         self.cell.as_xy()
-    }
-
-    
+    }      
 
 }
+
+
+///Turn a list of edges into a searchable hashmap
+pub fn edge_vector_to_hash(edges : &Vec<Edge>) ->HashMap<(usize,usize), Vec<Direction>>{
+    let mut edge_hashmap : HashMap<(usize,usize), Vec<Direction>> = HashMap::new();
+
+
+    for edge in edges{    
+        edge_hashmap.insert(
+            (edge.cell.x, edge.cell.y),
+            edge.dir.clone()
+        );    
+    }
+    return edge_hashmap;
+}
+
+
 
 
 ///A shape that consists of edges and a centre point
@@ -167,5 +198,15 @@ impl DeformShape{
     pub fn centre(&self) -> &Point{
         &self.centre
     }
+
+    pub fn max(&self) -> Point{
+        self.max
+    }
+
+    pub fn min(&self) -> Point{
+        self.min
+    }
+
+
 
 }

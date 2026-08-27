@@ -6,20 +6,21 @@ use std::collections::HashMap;
 
 pub mod types;
 pub mod edgedetection;
+pub mod pointgen;
 
 
 #[derive(Debug, Default)]
 pub enum DetectionMode{
     #[default]
     ///Go through every cell and determine whether it needs a point
-    TESTING
+    SIMPLE
 }
 
 impl fmt::Display for DetectionMode{
     fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result{
         match self{
-            Self::TESTING =>{
-                write!(f, "TESTING")
+            Self::SIMPLE =>{
+                write!(f, "SIMPLE")
             }
         }
     }
@@ -29,9 +30,9 @@ impl DetectionMode{
     ///Get the default hashmap setup for the detection mode
     pub fn get_default_settings(&self) -> HashMap<String, f64>{
         match self{
-            DetectionMode::TESTING => {
-                HashMap::from([(String::from("toolwidth"), 50.0f64)])
-            }
+            DetectionMode::SIMPLE => {
+                HashMap::from([(String::from("toolwidth"), 50.0f64),(String::from("spacing"), 10.0f64)])
+                        }
 
             _ => todo!()
         }
@@ -41,17 +42,16 @@ impl DetectionMode{
 
 
 
-
 #[derive(Debug, Default)]
 pub enum PathGenMode{
     #[default]
-    PLACEHOLDER
+    TESTING
 }
 
 impl fmt::Display for PathGenMode{
     fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result{
         match self{
-            Self::PLACEHOLDER =>{
+            Self::TESTING =>{
                 write!(f, "PLACEHOLDER")
             }
         }
