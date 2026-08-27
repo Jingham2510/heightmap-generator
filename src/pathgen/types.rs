@@ -109,7 +109,9 @@ impl Edge{
 ///A shape that consists of edges and a centre point
 pub struct DeformShape{
     edges : Vec<Edge>,
-    centre : Point
+    centre : Point,
+    max : Point,
+    min : Point
 }
 
 ///Create a shape from a set of edges
@@ -134,12 +136,23 @@ impl From<Vec<Edge>> for DeformShape{
 
 
         let centre_pnt = Point::create(
-            (min_x + max_x)/2 ,
-            (min_y + max_y)/2
+            (&min_x + &max_x)/2 ,
+            (&min_y + &max_y)/2
         );        
 
+        let max_pnt = Point::create(
+            max_x, max_y
+        );
 
-        Self {edges: set, centre: centre_pnt}
+        let min_pnt = Point::create(
+            min_x, min_y
+        );
+
+
+        Self {edges: set, 
+            centre: centre_pnt,
+        max : max_pnt,
+    min : min_pnt}
     }
 }
 
