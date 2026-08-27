@@ -1,5 +1,6 @@
 use crate::app::path_gen_info;
 use crate::pathgen::DetectionMode;
+use crate::pathgen::types::Edge;
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
 use crate::pathgen::{edgedetection, types::Direction};
@@ -210,7 +211,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                     match app.path_gen_info.detect_mode{
                         DetectionMode::TESTING =>{
                             //Detect the edges
-                            app.path_gen_info.detected_edges = edgedetection::simple(&app.path_gen_info.difference_map);
+                            app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
 
                             //Create the edge shapes
                             app.path_gen_info.edge_cells = create_edge_shapes(app);
@@ -271,51 +272,62 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 //Go through each edge and determine where to draw the lines
 fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 
+    const DRAW_CENTROID : bool = true;
+
     let mut cells : Vec<(f64, f64, Color)> = vec![];
 
-    //For each edge determine which parts to add to the edge cells
-    for edge in &app.path_gen_info.detected_edges{
+    //Go through each shape and draw the edge (and the centroid)
+    for shape in &app.path_gen_info.detected_shapes{
 
-        let (x, mut y) = edge.pos_f64();
+        //For each edge determine which parts to add to the edge cells
+        for edge in shape.edges(){ 
+            let (x, mut y) = edge.pos_f64();
+            //remembering that its top to bottom for cell rendering
+            y = app.path_gen_info.difference_height as f64 - y;
 
-        //remembering that its top to bottom for cell rendering
-        y = app.path_gen_info.difference_height as f64 - y;
-
-        for dir in edge.dir(){
-
-            match dir{                
-                Direction::NORTH =>{
-                    cells.push((x, y - 0.5, Color::Black));
+            for dir in edge.dir(){
+                match dir{                
+                    Direction::NORTH =>{
+                        cells.push((x, y - 0.5, Color::Black));
+                    }
+                    
+                    Direction::NORTHEAST =>{
+                        cells.push((x + 0.5, y - 0.5, Color::Black));
+                    }
+                    Direction::EAST =>{
+                        cells.push((x + 0.5, y, Color::Black));
+                    }
+                    Direction::SOUTHEAST =>{
+                        cells.push((x + 0.5, y + 0.5, Color::Black));
+                    }
+                    Direction::SOUTH =>{
+                        cells.push((x, y + 0.5, Color::Black));
+                    }
+                    Direction::SOUTHWEST =>{
+                        cells.push((x - 0.5, y + 0.5, Color::Black));
+                    }
+                    Direction::WEST =>{
+                        cells.push((x - 0.5, y, Color::Black));
+                    }
+                    Direction::NORTHWEST =>{
+                        cells.push((x - 0.5, y - 0.5, Color::Black));
+                    }                    
                 }
-                
-                Direction::NORTHEAST =>{
-                    cells.push((x + 0.5, y - 0.5, Color::Black));
-                }
-                 Direction::EAST =>{
-                    cells.push((x + 0.5, y, Color::Black));
-                }
-                Direction::SOUTHEAST =>{
-                    cells.push((x + 0.5, y + 0.5, Color::Black));
-                }
-                Direction::SOUTH =>{
-                    cells.push((x, y + 0.5, Color::Black));
-                }
-                Direction::SOUTHWEST =>{
-                    cells.push((x - 0.5, y + 0.5, Color::Black));
-                }
-                 Direction::WEST =>{
-                    cells.push((x - 0.5, y, Color::Black));
-                }
-                Direction::NORTHWEST =>{
-                    cells.push((x - 0.5, y - 0.5, Color::Black));
-                }
-                
-
-                _ =>{}
             }
+        }
 
 
+        if DRAW_CENTROID{
 
+            //Create the centroid marker
+            let (cent_x, mut cent_y) = shape.centre().as_xy_f64();
+
+            //cent_y = app.path_gen_info.difference_height as f64 - cent_y;
+
+            cells.push((cent_x - 0.25, cent_y - 0.25, Color::LightCyan));
+            cells.push((cent_x + 0.25, cent_y - 0.25, Color::LightCyan));
+            cells.push((cent_x - 0.25, cent_y + 0.25, Color::LightCyan));
+            cells.push((cent_x+ 0.25, cent_y + 0.25, Color::LightCyan));
         }
 
 
