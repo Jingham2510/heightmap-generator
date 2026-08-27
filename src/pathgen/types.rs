@@ -122,10 +122,10 @@ impl From<Vec<Edge>> for DeformShape{
 
         //Define the comparators
         let x_comp = |edge : &&Edge| {
-            edge.pos().0;
+            edge.pos();
         };
         let y_comp = |edge: &&Edge| {
-            edge.pos().1;
+            edge.pos();
         };
 
         //Iterate through every edge to get the max and min points
@@ -136,8 +136,8 @@ impl From<Vec<Edge>> for DeformShape{
 
 
         let centre_pnt = Point::create(
-            (&min_x + &max_x)/2 ,
-            (&min_y + &max_y)/2
+            (min_x + max_x)/2 ,
+            (min_y + max_y)/2
         );        
 
         let max_pnt = Point::create(
@@ -149,10 +149,11 @@ impl From<Vec<Edge>> for DeformShape{
         );
 
 
-        Self {edges: set, 
-            centre: centre_pnt,
-        max : max_pnt,
-    min : min_pnt}
+        Self {  edges: set, 
+                centre: centre_pnt,
+                max : max_pnt,
+                min : min_pnt
+            }
     }
 }
 

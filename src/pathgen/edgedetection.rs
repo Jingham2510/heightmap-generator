@@ -97,5 +97,5 @@ fn check_surrounding(hmap : &Heightmap, i : isize, j : isize) -> Vec<Direction>{
     }
 
 
-    return dirs;
+    dirs
 }

@@ -3,7 +3,7 @@ use ratatui::{
     Frame, layout::{Alignment, Constraint, Direction, Layout, Rect}, style::Style, symbols, text::{Line, Span}, widgets::{Block, Borders, Paragraph, Wrap, canvas::Canvas},
 };
 
-use crate::app::{App, HeightmapShape, path_gen_info};
+use crate::app::{App, HeightmapShape};
 use crate::ui::ui_shared;
 
 

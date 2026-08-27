@@ -5,7 +5,7 @@ use crate::update::{update_hmap_gen, update_pathmoving_gen};
 
 use crate::app::{App, NO_OF_TABS};
 
-use anyhow::{Error, bail};
+use anyhow::Error;
 
 pub fn update(app: &mut App, key_event: KeyEvent) {
 

@@ -9,7 +9,7 @@ use crate::{
 use rustgeomapping::data_types::heightmap::Heightmap;
 
 use std::env;
-use anyhow::{Error, bail};
+use anyhow::bail;
 
 
 ///Parse the user command related to the heightmap generation

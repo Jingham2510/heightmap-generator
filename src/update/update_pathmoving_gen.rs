@@ -1,6 +1,4 @@
-use crate::app::path_gen_info;
 use crate::pathgen::DetectionMode;
-use crate::pathgen::types::Edge;
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
 use crate::pathgen::{edgedetection, types::Direction};
@@ -16,7 +14,7 @@ use rustgeomapping::analysis::analyser::comp_maps;
 
 use std::env;
 
-use anyhow::{Error, bail};
+use anyhow::bail;
 
 
 ///Parse the user command related to the heightmap generation
@@ -145,7 +143,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                 "difference" =>{
 
                     //Check that two maps are loaded
-                    if app.path_gen_info.current_map_fp == "" || app.path_gen_info.target_map_fp == ""{
+                    if app.path_gen_info.current_map_fp.is_empty() || app.path_gen_info.target_map_fp.is_empty(){
                         app.curr_error = String::from("Load both maps first!");
                         bail!("cmd error")
                     }
@@ -320,7 +318,7 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
         if DRAW_CENTROID{
 
             //Create the centroid marker
-            let (cent_x, mut cent_y) = shape.centre().as_xy_f64();
+            let (cent_x, cent_y) = shape.centre().as_xy_f64();
 
             //cent_y = app.path_gen_info.difference_height as f64 - cent_y;
 
@@ -333,6 +331,6 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 
     }
 
-    return cells;
+    cells
 
 }

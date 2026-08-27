@@ -6,7 +6,6 @@ use anyhow::bail;
 
 use crate::app::App;
 use ratatui::style::Color;
-use rustgeomapping::data_types::heightmap::Heightmap;
 
 
 
@@ -55,7 +54,7 @@ pub fn calc_cell_colour(max : f32, min : f32, cell_val: &f32, mode :u8) -> Color
                 )
             
             };
-            return Color::Rgb(r as u8, g as u8, b as u8);
+            Color::Rgb(r as u8, g as u8, b as u8)
         }else{//Distance from 0
             //If the cells are the same just paint it white
             if *cell_val == 0.0{
@@ -80,7 +79,7 @@ pub fn calc_cell_colour(max : f32, min : f32, cell_val: &f32, mode :u8) -> Color
                 )
             
             };
-            return Color::Rgb(r as u8, g as u8, b as u8);
+            Color::Rgb(r as u8, g as u8, b as u8)
 
         }
 
