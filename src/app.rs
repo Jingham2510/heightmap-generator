@@ -6,7 +6,7 @@ use ratatui::{
     widgets::canvas::{Painter, Shape},
 };
 
-use crate::pathgen::{DetectionMode, PathGenMode, types::{DeformShape, Point}};
+use crate::trajectorygen::{DetectionMode, PathGenMode, types::{DeformShape, Point}};
 
 ///Types of deformation
 #[derive(Debug, Default)]

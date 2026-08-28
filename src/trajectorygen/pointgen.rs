@@ -1,4 +1,4 @@
-use crate::{app::{App, path_gen_info}, pathgen::types::*};
+use crate::{app::{App, path_gen_info}, trajectorygen::types::*};
 
 ///Generate points inside a shape
 /// distance based on tool width

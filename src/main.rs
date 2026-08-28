@@ -16,14 +16,14 @@ pub mod update;
 pub mod heightmapgen;
 
 ///Trajectory generator
-pub mod pathgen;
+pub mod trajectorygen;
 
 use anyhow::Result;
 use app::App;
 use event::{Event, EventHandler};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use tui::Tui;
-use crate::{pathgen::DetectionMode, update::update_core::update};
+use crate::{trajectorygen::DetectionMode, update::update_core::update};
 
 fn main() -> Result<()> {
     // Create an application.

@@ -1,9 +1,10 @@
 use crate::app::path_gen_info;
-use crate::pathgen::types::Point;
-use crate::pathgen::{self, DetectionMode, PathGenMode, pointgen};
+use crate::trajectorygen::types::Point;
+use crate::trajectorygen::{self, DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
-use crate::pathgen::{edgedetection, types::Direction};
+use crate::trajectorygen::{edgedetection, types::Direction};
+
 
 
 
@@ -14,7 +15,7 @@ use ratatui::style::Color;
 use rustgeomapping::data_types::heightmap::Heightmap;
 use rustgeomapping::analysis::analyser::comp_maps;
 
-use std::env;
+use std::{env, process::Command};
 
 use anyhow::bail;
 
@@ -375,7 +376,7 @@ fn create_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
 }
 
 
-///Save the debug heightmaps 
+///Save all the debug heightmaps 
 fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
 
 
@@ -412,13 +413,6 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
             let mut shape_map = Heightmap::new(shape.max().x() - shape.min().x() + 1, shape.max().y() - shape.min().y() + 1);
 
             for edge in shape.edges(){
-
-
-                if (edge.y() as f64 - shape.min().y() as f64) < 0.0{
-                    println!("y too low! edge: {}, shape 'min': {}, shape 'max': {}", edge.y() as usize , shape.min().y() as usize, shape.max().y() as usize);
-                
-                    bail!("test")
-                }
 
                 let _ = shape_map.set_cell_height(edge.x() - shape.min().x(),edge.y() - shape.min().y(), 100.0);
 
@@ -479,7 +473,6 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
 
     }
 
-
     //Format the python script run command
     if !diff_saved && !edge_saved && !waypoint_saved{
         app.curr_error = String::from("No debug info to save!");
@@ -488,16 +481,20 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
     let mut base_cmd = String::from("python3 ");
 
     if diff_saved{
-        base_cmd.push_str(" diff_map");
+        base_cmd.push_str(" --diff_map");
     }
 
     if edge_saved{
-        base_cmd.push_str(&format!(" edges_{}", app.path_gen_info.detected_shapes.len()))
+        base_cmd.push_str(&format!(" --edges_{}", app.path_gen_info.detected_shapes.len()))
     }
 
     if waypoint_saved{
-        base_cmd.push_str(" waypoint")
+        base_cmd.push_str(" --waypoint")
     }
+
+    Command::new(base_cmd).output().expect("Failed to call script");
+
+
 
 
     Ok(())

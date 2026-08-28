@@ -217,10 +217,6 @@ impl From<Vec<Edge>> for DeformShape{
             min_x, min_y
         );
 
-        println!("x: min - {} max - {}", min_x, max_x);
-        println!("y: min - {} max - {}", min_y, max_y);
-
-
         Self {  edges: set, 
                 centre: centre_pnt,
                 max : max_pnt,

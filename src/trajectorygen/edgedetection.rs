@@ -1,5 +1,5 @@
 ///Methods to detect the edges of earthshapes
-use crate::pathgen::types::{DeformShape, Edge, Direction};
+use crate::trajectorygen::types::{DeformShape, Edge, Direction};
 use rustgeomapping::data_types::heightmap::Heightmap;
 
 //Assumes that there is only one shape
