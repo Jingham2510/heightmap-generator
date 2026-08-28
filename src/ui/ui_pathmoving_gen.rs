@@ -155,6 +155,7 @@ fn render_detect_settings(app: &mut App, frame:&mut Frame, widget : Rect){
 ///Render the path generation imaging
 fn render_path_gen_image(app: &mut App, frame : &mut Frame, widget : Rect){
 
+    const DRAW_EDGES : bool = false;
 
     if !app.path_gen_info.diff_map_generated{
         frame.render_widget(
@@ -181,12 +182,21 @@ fn render_path_gen_image(app: &mut App, frame : &mut Frame, widget : Rect){
                 });
 
                 //Draw the edge cells if required
-                if !app.path_gen_info.edge_cells.is_empty(){
+                if DRAW_EDGES && !app.path_gen_info.edge_cells.is_empty(){
                     ctx.layer();
                     ctx.draw(&HeightmapShape{
                         cells: &app.path_gen_info.edge_cells
                     });
                 }
+
+                //Draw the generated points
+                if !app.path_gen_info.point_cells.is_empty(){
+                    ctx.layer();
+                    ctx.draw(&HeightmapShape{
+                        cells: &app.path_gen_info.point_cells
+                    });
+                }
+
             });
 
         //Create the canvas

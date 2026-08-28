@@ -115,7 +115,16 @@ impl Edge{
 
     pub fn pos(&self) -> (usize, usize){
         self.cell.as_xy()
-    }      
+    }   
+
+    pub fn x(&self) -> usize{
+        self.cell.x()
+    }
+    pub fn y(&self) -> usize{
+        self.cell.y()
+    }   
+
+
 
 }
 
@@ -153,17 +162,18 @@ impl From<Vec<Edge>> for DeformShape{
 
         //Define the comparators
         let x_comp = |edge : &&Edge| {
-            edge.pos();
+            edge.x();
         };
         let y_comp = |edge: &&Edge| {
-            edge.pos();
+            edge.y();
         };
 
         //Iterate through every edge to get the max and min points
-        let max_x  = set.iter().max_by_key(&x_comp).unwrap().pos().0;
-        let max_y = set.iter().max_by_key(&y_comp).unwrap().pos().1;
-        let min_x  = set.iter().min_by_key(&x_comp).unwrap().pos().0;
-        let min_y = set.iter().min_by_key(&y_comp).unwrap().pos().1; 
+        let max_x  = set.iter().max_by_key(&x_comp).unwrap().x();        
+        let min_x  = set.iter().min_by_key(&x_comp).unwrap().x();
+        
+        let max_y = set.iter().max_by_key(&y_comp).unwrap().y();
+        let min_y = set.iter().min_by_key(&y_comp).unwrap().y(); 
 
 
         let centre_pnt = Point::create(

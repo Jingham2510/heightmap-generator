@@ -8,13 +8,15 @@ pub fn simple(data: &path_gen_info) -> Vec<Point>{
 
 
     //Due to the method selected 'toolwidth' is a guaranteed key
-    let tool_width = data.path_info.get("toolwidth").unwrap();
+    let tool_width = data.detect_info.get("toolwidth").unwrap();
 
-    let max_count = data.path_info.get("spacing").unwrap();
+    let max_count = data.detect_info.get("spacing").unwrap();
+
+   
 
     //For each detected shape
     for shape in &data.detected_shapes{
-        //Flags indicating whether the marker is in in the shape
+
       
         //Go through every cell that sits inside the shapes rectangle
         for x in (shape.min().x()..shape.max().x()).step_by((tool_width/2.0) as usize){
@@ -26,6 +28,7 @@ pub fn simple(data: &path_gen_info) -> Vec<Point>{
                 if cell_val.is_nan() || cell_val == 0.0{
                     continue;
                 }
+
 
                 //Calculate the marker spacing in terms of the local shape coordinates
                 if (y - shape.min().y()) as f64 % max_count == 0.0{

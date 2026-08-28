@@ -1,3 +1,4 @@
+use crate::pathgen::types::Point;
 use crate::pathgen::{self, DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
@@ -215,8 +216,12 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Create the edge shapes
                             app.path_gen_info.edge_cells = create_edge_shapes(app);
 
+                            //Generate the points
                             app.path_gen_info.generated_points = pointgen::simple(&app.path_gen_info);
-                          
+                            //Create the points to render
+                            app.path_gen_info.point_cells = create_waypoint_cells(&app.path_gen_info.generated_points);
+                        
+
 
                         }
                     }           
@@ -343,6 +348,19 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
         }
 
 
+    }
+
+    cells
+
+}
+
+//Create the waypoint drawing cells
+fn create_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
+
+    let mut cells :Vec<(f64, f64, Color)> = vec![];
+
+    for point in points{
+        cells.push((point.x() as f64, point.y() as f64, Color::Black))
     }
 
     cells

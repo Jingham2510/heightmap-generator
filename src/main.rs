@@ -23,11 +23,14 @@ use app::App;
 use event::{Event, EventHandler};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use tui::Tui;
-use crate::update::update_core::update;
+use crate::{pathgen::DetectionMode, update::update_core::update};
 
 fn main() -> Result<()> {
     // Create an application.
     let mut app = App::new();
+
+    //Setup the starting settings
+    app.path_gen_info.detect_info = DetectionMode::SIMPLE.get_default_settings();
 
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(std::io::stderr());

@@ -13,7 +13,7 @@ pub fn simple(hmap : &Heightmap) -> DeformShape{
     //Go through every column (ignoring edges)
     for i in 1..hmap.width() - 1{
         //Go through every row (ignoring edges)
-        for j in (1..hmap.height() - 1).rev(){
+        for j in 1..hmap.height() - 1 {
 
             //Get the cell value
             let cell_val = hmap.get_cell_height(i, j).unwrap();
