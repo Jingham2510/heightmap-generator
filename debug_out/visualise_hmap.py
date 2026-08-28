@@ -7,6 +7,7 @@ import sys
 import matplotlib.pyplot as plt
 import re
 import numpy as np
+import math
 
 
 class HeightMap:
@@ -40,6 +41,26 @@ class HeightMap:
         plt.savefig(f"{title}.png", dpi =200)
 
         plt.close()
+
+
+    """
+    Save edges
+    """
+    def save_less(self, title):
+        fig, ax = plt.subplots()
+
+        im = plt.imshow(self.cells)
+        # Colorbar settings
+        # Tick settings
+        plt.yticks([])
+        plt.xticks([])
+
+        plt.savefig(f"{title}.png", dpi =200)
+
+        plt.close()
+
+
+
 
 
 """
@@ -102,29 +123,32 @@ def heightmap_from_file(file, skip_first):
 
 if __name__ == "__main__":
 
+
     #print the system arguments
     for arg in sys.argv:
         #Match the argument to what to generate
         match arg:
             #Difference map creation
             case "--diff_map":
-                diff_map = heightmap_from_file("debug_out/difference_map.txt")
+                diff_map = heightmap_from_file(open("debug_out/difference_map.txt"), False)
                 diff_map.save("debug_out/difference_map")
+                diff_loaded = True
 
             #Edge map creation
             case _ if "edges" in arg:
                 split_arg = arg.split("_")
 
-                for i in int(split_arg[1]):
-                    fp = f"debug_out/shape_{i}.txt"
-                    shape = heightmap_from_file(fp)
-                    shape.save(fp)                   
+                for i in range(int(split_arg[1]) + 1):
+                    fp = open(f"debug_out/shape_{i}.txt")
+                    shape = heightmap_from_file(fp, False)
+                    shape.save_less(f"debug_out/shape_{i}")                   
 
 
             #Point map creation
             case "--waypoint":
-                points_map = heightmap_from_file("debug_out/points.txt")
-                points_map.save("debug_out/points")
+                points_map = heightmap_from_file(open("debug_out/points.txt"), False)
+                points_map.save_less("debug_out/points")
+   
+   
 
-   
-   
+    

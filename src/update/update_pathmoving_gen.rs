@@ -12,6 +12,7 @@ use crate::{
     app::{App}
 };
 use ratatui::style::Color;
+use rustgeomapping::analysis::analyser::ForceSel::Y;
 use rustgeomapping::data_types::heightmap::Heightmap;
 use rustgeomapping::analysis::analyser::comp_maps;
 
@@ -144,61 +145,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                 //Create the difference map between the provided maps
                 "difference" =>{
-
-                    //Check that two maps are loaded
-                    if app.path_gen_info.current_map_fp.is_empty() || app.path_gen_info.target_map_fp.is_empty(){
-                        app.curr_error = String::from("Load both maps first!");
-                        bail!("cmd error")
-                    }
-
-                    //Update the heightmap that represents the difference between the target and the current map
-                    let result = comp_maps(&app.path_gen_info.current_map, &app.path_gen_info.target_map);
-                    
-    
-
-                   
-                    match result{
-                        Ok(map) =>{
-                            //Load the map into the path generate structure
-                            app.path_gen_info.difference_map = map.clone();
-
-                            app.path_gen_info.difference_width = app.path_gen_info.difference_map.width();
-                            app.path_gen_info.difference_height = app.path_gen_info.difference_map.height();
-
-
-
-                            //Clear the current cell colours for the canvas
-                            app.path_gen_info.diff_map_cells.clear();
-
-                            let max = app.path_gen_info.difference_map.get_max();
-                            let min = app.path_gen_info.difference_map.get_min();
-
-                            let mut row_cnt = 0.0;
-                            let mut col_cnt = 0.0;
-                            //Heightmap drawing function - reverse to draw and match pyplot
-                            for row in app.path_gen_info.difference_map.cells().into_iter().rev() {
-                                for cell in row {
-                                    
-                                    let cell_colour = calc_cell_colour(max, min, &cell, 1);
-
-                                    app.path_gen_info.diff_map_cells.push((col_cnt, row_cnt, cell_colour));
-                                    col_cnt += 1.0;
-                                }
-                                col_cnt = 0.0;
-                                row_cnt += 1.0;
-                            }                            
-
-                            //Flag that a difference map has been generated
-                            app.path_gen_info.diff_map_generated = true;
-                        }
-                        Err(e) =>{
-                            app.curr_error = format!("Failed to compare maps - {}", e);
-                            bail!(e)
-                           }
-
-
-                    }
-                                    
+                    create_diff_map(app)?;                                    
 
                 }
 
@@ -216,12 +163,12 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
 
                             //Create the edge shapes
-                            app.path_gen_info.edge_cells = create_edge_shapes(app);
+                            app.path_gen_info.edge_cells = render_edge_shapes(app);
 
                             //Generate the points
                             app.path_gen_info.generated_points = pointgen::simple(&app.path_gen_info);
                             //Create the points to render
-                            app.path_gen_info.point_cells = create_waypoint_cells(&app.path_gen_info.generated_points);
+                            app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);
                         
 
 
@@ -290,10 +237,66 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
 }
 
+fn create_diff_map(app : &mut App) -> Result<(), anyhow::Error>{
+
+    //Check that two maps are loaded
+    if app.path_gen_info.current_map_fp.is_empty() || app.path_gen_info.target_map_fp.is_empty(){
+        app.curr_error = String::from("Load both maps first!");
+        bail!("cmd error")
+    }
+
+    //Update the heightmap that represents the difference between the target and the current map
+    let result = comp_maps(&app.path_gen_info.current_map, &app.path_gen_info.target_map);   
+
+
+    
+    match result{
+        Ok(map) =>{
+            //Load the map into the path generate structure
+            app.path_gen_info.difference_map = map.clone();
+
+            app.path_gen_info.difference_width = app.path_gen_info.difference_map.width();
+            app.path_gen_info.difference_height = app.path_gen_info.difference_map.height();
+
+
+
+            //Clear the current cell colours for the canvas
+            app.path_gen_info.diff_map_cells.clear();
+
+            let max = app.path_gen_info.difference_map.get_max();
+            let min = app.path_gen_info.difference_map.get_min();
+
+            let mut row_cnt = 0.0;
+            let mut col_cnt = 0.0;
+            //Heightmap drawing function - reverse to draw and match pyplot
+            for row in app.path_gen_info.difference_map.cells().into_iter().rev() {
+                for cell in row {
+                    
+                    let cell_colour = calc_cell_colour(max, min, &cell, 1);
+
+                    app.path_gen_info.diff_map_cells.push((col_cnt, row_cnt, cell_colour));
+                    col_cnt += 1.0;
+                }
+                col_cnt = 0.0;
+                row_cnt += 1.0;
+            }                            
+
+            //Flag that a difference map has been generated
+            app.path_gen_info.diff_map_generated = true;
+            Ok(())
+        }
+        Err(e) =>{
+            app.curr_error = format!("Failed to compare maps - {}", e);
+            bail!(e)
+            }
+
+
+    }
+}
 
 
 //Go through each edge and determine where to draw the lines
-fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
+fn render_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 
     const DRAW_CENTROID : bool = true;
 
@@ -304,7 +307,7 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 
         //For each edge determine which parts to add to the edge cells
         for edge in shape.edges(){ 
-            let (x, mut y) = edge.pos_f64();
+            let (mut y,  x) = edge.pos_f64();
             //remembering that its top to bottom for cell rendering
             y = app.path_gen_info.difference_height as f64 - y;
 
@@ -343,7 +346,7 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
         if DRAW_CENTROID{
 
             //Create the centroid marker
-            let (cent_x, cent_y) = shape.centre().as_xy_f64();
+            let (cent_y, cent_x) = shape.centre().as_xy_f64();
 
             //cent_y = app.path_gen_info.difference_height as f64 - cent_y;
 
@@ -361,14 +364,15 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 }
 
 ///Create the waypoint drawing cells
-fn create_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
+fn render_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
 
-    let max_y = 1000.0;
+    //Magic number for now 
+    let max = 1000.0;
 
     let mut cells :Vec<(f64, f64, Color)> = vec![];
 
-    for point in points{
-        cells.push((point.x() as f64, max_y - point.y() as f64, Color::Black))
+    for point in points.iter().rev(){
+        cells.push((point.y() as f64, max - point.x() as f64, Color::Black))
     }
 
     cells
@@ -472,28 +476,6 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
             }
 
     }
-
-    //Format the python script run command
-    if !diff_saved && !edge_saved && !waypoint_saved{
-        app.curr_error = String::from("No debug info to save!");
-        bail!("cmd error")
-    }
-    let mut base_cmd = String::from("python3 ");
-
-    if diff_saved{
-        base_cmd.push_str(" --diff_map");
-    }
-
-    if edge_saved{
-        base_cmd.push_str(&format!(" --edges_{}", app.path_gen_info.detected_shapes.len()))
-    }
-
-    if waypoint_saved{
-        base_cmd.push_str(" --waypoint")
-    }
-
-    Command::new(base_cmd).output().expect("Failed to call script");
-
 
 
 
