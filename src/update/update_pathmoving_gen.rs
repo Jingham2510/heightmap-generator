@@ -1,3 +1,4 @@
+use crate::app::path_gen_info;
 use crate::pathgen::types::Point;
 use crate::pathgen::{self, DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
@@ -266,6 +267,10 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                 }
 
+                //Create heightmaps from the difference, edge, and points and save them
+                //Then use a python script to create (better rendered) versions
+                "debug" =>{debug_save(app)?},
+
                 _ =>{app.curr_error = String::from("Invalid save option");
                     bail!("cmd error")
                     }
@@ -354,15 +359,147 @@ fn create_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 
 }
 
-//Create the waypoint drawing cells
+///Create the waypoint drawing cells
 fn create_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
+
+    let max_y = 1000.0;
 
     let mut cells :Vec<(f64, f64, Color)> = vec![];
 
     for point in points{
-        cells.push((point.x() as f64, point.y() as f64, Color::Black))
+        cells.push((point.x() as f64, max_y - point.y() as f64, Color::Black))
     }
 
     cells
+
+}
+
+
+///Save the debug heightmaps 
+fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
+
+
+        
+    let mut diff_saved = false;
+    let mut edge_saved = false;
+    let mut waypoint_saved = false;
+
+    //Check if the difference map exists
+    if app.path_gen_info.diff_map_generated{
+        let path = format!("{}/debug_out/difference_map", env::current_dir().unwrap().display());
+        let result = app.path_gen_info.difference_map.save_to_file(&path);
+        match result {
+            Ok(_good) => {
+                diff_saved = true;
+            }
+            Err(_e) => {
+                app.curr_error = String::from("Failed to save heightmap");
+                bail!("cmd error")
+            }
+        }
+    }
+
+    //Create local maps of the shapes
+    if !app.path_gen_info.detected_shapes.is_empty(){
+
+        let mut cnt = 0;
+
+        //For each shape create a heightmap that matches the size of the rectangle bounds (+ a little bit)
+        for shape in &app.path_gen_info.detected_shapes{
+
+
+            //Create the heightmap
+            let mut shape_map = Heightmap::new(shape.max().x() - shape.min().x() + 1, shape.max().y() - shape.min().y() + 1);
+
+            for edge in shape.edges(){
+
+
+                if (edge.y() as f64 - shape.min().y() as f64) < 0.0{
+                    println!("y too low! edge: {}, shape 'min': {}, shape 'max': {}", edge.y() as usize , shape.min().y() as usize, shape.max().y() as usize);
+                
+                    bail!("test")
+                }
+
+                let _ = shape_map.set_cell_height(edge.x() - shape.min().x(),edge.y() - shape.min().y(), 100.0);
+
+            }
+
+            //Format the save string and save the edgemap
+           let path = format!("{}/debug_out/shape_{}", env::current_dir().unwrap().display(), cnt);
+            let result = shape_map.save_to_file(&path);
+            match result {
+                Ok(_good) => {
+                    edge_saved = true;
+                    cnt += 1;
+
+                }
+                Err(_e) => {
+                    app.curr_error = String::from("Failed to save edgemap");
+                    bail!("cmd error")
+                }
+            }
+        }
+    }
+
+    //Create a global view of the map with all shapes and points       
+    if !app.path_gen_info.generated_points.is_empty(){
+        const MAKE_EDGES : bool = false;
+       
+        //Create an empty heightmap
+        let mut point_map = Heightmap::new(app.path_gen_info.difference_map.width(), app.path_gen_info.difference_map.height());
+
+
+        //Place all the edges in it
+        if MAKE_EDGES{
+            for shape in &app.path_gen_info.detected_shapes{
+            for edge in shape.edges(){
+                    let _ = point_map.set_cell_height(edge.x(),edge.y(), 100.0);
+                }
+            }
+        }
+
+        //Place all the points (without the heights)
+        for point in &app.path_gen_info.generated_points{
+            let _ = point_map.set_cell_height(point.x(), point.y(), 100.0);
+        }
+
+        //Format the save string and save the pointmap
+        //Format the save string and save the edgemap
+           let path = format!("{}/debug_out/points", env::current_dir().unwrap().display());
+            let result = point_map.save_to_file(&path);
+            match result {
+                Ok(_good) => {
+                    waypoint_saved = true;
+                }
+                Err(_e) => {
+                    app.curr_error = String::from("Failed to save waypoint map");
+                    bail!("cmd error")
+                }
+            }
+
+    }
+
+
+    //Format the python script run command
+    if !diff_saved && !edge_saved && !waypoint_saved{
+        app.curr_error = String::from("No debug info to save!");
+        bail!("cmd error")
+    }
+    let mut base_cmd = String::from("python3 ");
+
+    if diff_saved{
+        base_cmd.push_str(" diff_map");
+    }
+
+    if edge_saved{
+        base_cmd.push_str(&format!(" edges_{}", app.path_gen_info.detected_shapes.len()))
+    }
+
+    if waypoint_saved{
+        base_cmd.push_str(" waypoint")
+    }
+
+
+    Ok(())
 
 }

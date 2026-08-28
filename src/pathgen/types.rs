@@ -160,6 +160,32 @@ impl From<Vec<Edge>> for DeformShape{
     fn from(set : Vec<Edge>) -> Self{
 
 
+        let mut max_x = 0usize;
+        let mut min_x = 1001usize;
+        let mut max_y = 0usize;
+        let mut min_y = 1001usize;
+
+
+        for edge in &set{
+
+            if edge.x() > max_x{
+                max_x = edge.x()
+            }
+            if edge.x() < min_x{
+                min_x = edge.x()
+            }
+            if edge.y() > max_y{
+                max_y = edge.y()
+            }
+            if edge.y() < min_y{
+                min_y = edge.y()
+            }
+
+        }
+
+
+
+        /* BUGGED? - not sure!
         //Define the comparators
         let x_comp = |edge : &&Edge| {
             edge.x();
@@ -169,11 +195,13 @@ impl From<Vec<Edge>> for DeformShape{
         };
 
         //Iterate through every edge to get the max and min points
-        let max_x  = set.iter().max_by_key(&x_comp).unwrap().x();        
-        let min_x  = set.iter().min_by_key(&x_comp).unwrap().x();
-        
-        let max_y = set.iter().max_by_key(&y_comp).unwrap().y();
-        let min_y = set.iter().min_by_key(&y_comp).unwrap().y(); 
+        let max_x  = set.iter().max_by_key(x_comp).unwrap().x();        
+        let min_x  = set.iter().min_by_key(x_comp).unwrap().x();
+
+        let max_y = set.iter().max_by_key(y_comp).unwrap().y();
+        let min_y = set.iter().min_by_key(y_comp).unwrap().y(); 
+        */
+
 
 
         let centre_pnt = Point::create(
@@ -188,6 +216,9 @@ impl From<Vec<Edge>> for DeformShape{
         let min_pnt = Point::create(
             min_x, min_y
         );
+
+        println!("x: min - {} max - {}", min_x, max_x);
+        println!("y: min - {} max - {}", min_y, max_y);
 
 
         Self {  edges: set, 
