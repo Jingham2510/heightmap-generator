@@ -44,7 +44,7 @@ class HeightMap:
 
 
     """
-    Save edges
+    Save the heightmap without any extra info (i.e. no cmap or colorbar)
     """
     def save_less(self, title):
         fig, ax = plt.subplots()
@@ -58,6 +58,33 @@ class HeightMap:
         plt.savefig(f"{title}.png", dpi =200)
 
         plt.close()
+
+    """
+    Save a heightmap as a scatter plot
+    Determine the scatter points by looking at every cell and saving the cells that have information in
+    """
+    def save_as_scatter(self, title):
+
+        X = []
+        Y = []
+        #Determine which cells have info in
+        it = np.nditer(self.cells, flags=['multi_index'])
+        for cell in it:
+            if not math.isnan(cell) and cell != 0.0:
+                X.append(it.multi_index[1])
+                Y.append(1000 - it.multi_index[0])
+
+
+        plt.scatter(X, Y)
+
+        plt.title(f"{title}")
+        plt.savefig(f"{title}.png", dpi =200)
+
+        plt.close()
+
+       
+
+        return
 
 
 
@@ -146,8 +173,8 @@ if __name__ == "__main__":
 
             #Point map creation
             case "--waypoint":
-                points_map = heightmap_from_file(open("debug_out/points.txt"), False)
-                points_map.save_less("debug_out/points")
+                points_map = heightmap_from_file(open("debug_out/waypoints.txt"), False)
+                points_map.save_as_scatter("debug_out/waypoints")
    
    
 
