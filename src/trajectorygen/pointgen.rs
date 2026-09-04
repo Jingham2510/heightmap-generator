@@ -43,3 +43,14 @@ pub fn simple(data: &path_gen_info) -> Vec<Point>{
     return points;
 
 }
+
+
+
+///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
+pub fn voronoi_approx(data : &path_gen_info) -> Vec<Point>{
+
+
+
+    todo!()
+
+}

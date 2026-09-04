@@ -13,7 +13,11 @@ pub mod pointgen;
 pub enum DetectionMode{
     #[default]
     ///Go through every cell and determine whether it needs a point
-    SIMPLE
+    SIMPLE,
+
+    ///Iteratively space the points using a voronoi cell method
+    VORONOI
+
 }
 
 impl fmt::Display for DetectionMode{
@@ -21,6 +25,9 @@ impl fmt::Display for DetectionMode{
         match self{
             Self::SIMPLE =>{
                 write!(f, "SIMPLE")
+            }
+            Self::VORONOI =>{
+                write!(f, "VORONOI")
             }
         }
     }
@@ -31,8 +38,12 @@ impl DetectionMode{
     pub fn get_default_settings(&self) -> HashMap<String, f64>{
         match self{
             DetectionMode::SIMPLE => {
-                HashMap::from([(String::from("toolwidth"), 50.0f64),(String::from("spacing"), 10.0f64)])
+                HashMap::from([(String::from("tool_width"), 50.0f64),(String::from("spacing"), 10.0f64)])
                         }
+
+            DetectionMode::VORONOI =>{
+                HashMap::from([(String::from("point_count"), 50.0f64),(String::from("iterations"), 100.0f64)])
+            }
 
             _ => todo!()
         }
