@@ -6,5 +6,6 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.104"
 crossterm = "0.29.0"
+rand = {version = "0.10.2", features = ["thread_rng"]}
 ratatui = "0.30.2"
 rustgeomapping = {git = "https://github.com/Jingham2510/rustgeomapping", features=["analysis"]}

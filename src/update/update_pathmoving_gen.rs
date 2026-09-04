@@ -97,6 +97,11 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             app.path_gen_info.detect_info = DetectionMode::SIMPLE.get_default_settings();
                         }
 
+                        "scattershot" =>{
+                            app.path_gen_info.detect_mode = DetectionMode::SCATTERSHOT;
+                            app.path_gen_info.detect_info = DetectionMode::SCATTERSHOT.get_default_settings();
+                        }
+
                         "voronoi" =>{
                             app.path_gen_info.detect_mode = DetectionMode::VORONOI;
                             app.path_gen_info.detect_info = DetectionMode::VORONOI.get_default_settings();
@@ -174,6 +179,21 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Create the points to render
                             app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);                      
 
+
+                        }
+
+                        DetectionMode::SCATTERSHOT =>{
+
+                            //Create the edge shapes
+                            app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
+
+                            //Render the edge shapes
+                            app.path_gen_info.edge_cells = render_edge_shapes(app);
+
+                            //Generate the points
+                            app.path_gen_info.generated_points = pointgen::scattershot(&app.path_gen_info);
+                            //Create the points to render
+                            app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);      
 
                         }
 

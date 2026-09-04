@@ -15,6 +15,9 @@ pub enum DetectionMode{
     ///Go through every cell and determine whether it needs a point
     SIMPLE,
 
+    ///Randomly generate the points
+    SCATTERSHOT,
+
     ///Iteratively space the points using a voronoi cell method
     VORONOI
 
@@ -25,6 +28,9 @@ impl fmt::Display for DetectionMode{
         match self{
             Self::SIMPLE =>{
                 write!(f, "SIMPLE")
+            }
+            Self::SCATTERSHOT =>{
+                write!(f, "SCATTERSHOT")
             }
             Self::VORONOI =>{
                 write!(f, "VORONOI")
@@ -41,8 +47,12 @@ impl DetectionMode{
                 HashMap::from([(String::from("tool_width"), 50.0f64),(String::from("spacing"), 10.0f64)])
                         }
 
+            DetectionMode::SCATTERSHOT =>{
+                HashMap::from([(String::from("points_per_shape"), 50.0f64)])
+            }
+
             DetectionMode::VORONOI =>{
-                HashMap::from([(String::from("point_count"), 50.0f64),(String::from("iterations"), 100.0f64)])
+                HashMap::from([(String::from("points_per_shape"), 50.0f64),(String::from("iterations"), 100.0f64)])
             }
 
             _ => todo!()
