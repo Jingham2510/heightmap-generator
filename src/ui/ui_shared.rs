@@ -1,4 +1,6 @@
-///Shared UI widgets
+/*
+Shared UI widgets
+*/
 
 
 use ratatui::{

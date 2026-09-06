@@ -1,4 +1,6 @@
-///The tooling used to generate the points in the difference maps and generate trajectories
+/*
+The tooling used to generate the points in the difference maps and generate trajectories
+*/
 
 use std::fmt;
 use std::collections::HashMap;
@@ -55,7 +57,6 @@ impl DetectionMode{
                 HashMap::from([(String::from("points_per_shape"), 50.0f64),(String::from("iterations"), 100.0f64)])
             }
 
-            _ => todo!()
         }
     }
 }

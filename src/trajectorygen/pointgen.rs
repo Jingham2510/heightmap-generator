@@ -1,4 +1,4 @@
-use std::sync::{Arc, mpsc::{self, Receiver, Sender}};
+use std::{sync::{Arc, mpsc::{self, Receiver, Sender}}, thread};
 
 use crate::{app::{PathGenInfo}, trajectorygen::types::*};
 use rustgeomapping::data_types::heightmap::Heightmap;
@@ -43,7 +43,7 @@ pub fn simple(data: &PathGenInfo) -> Vec<Point>{
 
 
 
-    return points;
+    points
 
 }
 
@@ -118,11 +118,16 @@ pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
             -Start again   
      */
 
+    //Load the user specified values
+    let points_per_shape = data.detect_info.get("points_per_shape").unwrap();
+    let iterations = data.detect_info.get("iterations").unwrap();
+
+
     
     //Create an Arc of the heightmap so that it can be shared and readable 
     let arc_map = Arc::new(&data.difference_map);
 
-    let final_points : Vec<Point> = vec![];
+    let mut final_points : Vec<Point> = vec![];
 
     let mut thread_count = 0;
 
@@ -130,9 +135,54 @@ pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
 
    
     //Need to wait until all threads have completed point calculation
-    
+    for shape in &data.detected_shapes    {
 
+        let shape_clone = shape.clone();
+        let it_clone = iterations.clone() as i32;
+        let pnt_cnt_clone = points_per_shape.clone() as i32;
+        let map_clone = arc_map.clone();
+        let send_clone = pnt_pipe.0.clone();
+
+        //Create the voronoi thread
+        let _ = thread::spawn(move || {
+            
+            let pnts = voronoi_gen(it_clone, pnt_cnt_clone, shape_clone, map_clone);
+
+            send_clone.send(pnts);
+
+        });
+
+
+
+        //Increase the thread count
+        thread_count += 1;
+    }
+
+
+    //Wait for all of the threads to finish
+    while thread_count != 0{
+
+        let mut pnts = pnt_pipe.1.recv().unwrap();
+
+        final_points.append(&mut pnts);
+
+        thread_count -= 1;
+    }
 
     todo!()
 
+}
+
+
+
+///For a given shape on a given map, generate an approximate equal spread of points
+fn voronoi_gen(iterations : i32, pnts_per_shape : i32, shape : &DeformShape, map : Arc<&Heightmap>) -> Vec<Point>{
+
+    //Generate the initial random points
+
+    
+    //For the number of iterations specified
+
+
+    todo!();
 }

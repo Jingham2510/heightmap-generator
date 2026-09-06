@@ -1,4 +1,6 @@
-///UI widgets used in heightmap generation
+/*
+UI widgets used in heightmap generation
+*/
 
 
 use ratatui::{
