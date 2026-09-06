@@ -34,7 +34,7 @@ pub fn generate_hmap(
     };
 
      for cell in deform_cells{
-        deform_hmap.set_cell_height(cell.1, cell.0, cell.2 as f32);
+        let _  = deform_hmap.set_cell_height(cell.1, cell.0, cell.2 as f32);
     }
 
     deform_hmap

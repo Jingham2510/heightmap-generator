@@ -16,7 +16,7 @@ use crate::app::App;
 
 
 ///Render the user CLI
-pub fn render_CLI(app: &mut App, frame: &mut Frame, widget : Rect){
+pub fn render_cmd_line(app: &mut App, frame: &mut Frame, widget : Rect){
  //CLI text
     let err_msg = if app.curr_error.is_empty() {
         Line::from(Span::styled(

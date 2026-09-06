@@ -89,7 +89,7 @@ impl<'a> Shape for HeightmapShape<'a> {
 
 ///Information and settings required for creating heightmap deformations
 #[derive(Default)]
-pub struct hmap_gen_info{
+pub struct HmapGenInfo{
     ///Deformation setup info and associated variables
     pub deform_settings: HashMap<String, f64>,
 
@@ -117,7 +117,7 @@ pub struct hmap_gen_info{
 
 ///Information and settings required for generation trajectory paths
 #[derive(Default)]
-pub struct path_gen_info{
+pub struct PathGenInfo{
     ///Current heightmap filepath
     pub current_map_fp : String,
     ///Target heightmap filepath
@@ -172,10 +172,10 @@ pub struct App {
     pub curr_input: String,
 
     ///Heightmap generation information
-    pub hmap_gen_info : hmap_gen_info,
+    pub hmap_gen_info : HmapGenInfo,
 
     ///Earthmoving path generation information
-    pub path_gen_info : path_gen_info,   
+    pub path_gen_info : PathGenInfo,   
 
 
   

@@ -1,9 +1,11 @@
-use crate::{app::{App, path_gen_info}, trajectorygen::types::*};
-use rand::random_range;
+use std::sync::{Arc, mpsc::{self, Receiver, Sender}};
+
+use crate::{app::{PathGenInfo}, trajectorygen::types::*};
+use rustgeomapping::data_types::heightmap::Heightmap;
 
 ///Generate points inside a shape
 /// distance based on tool width
-pub fn simple(data: &path_gen_info) -> Vec<Point>{
+pub fn simple(data: &PathGenInfo) -> Vec<Point>{
 
     let mut points : Vec<Point> = vec![];
 
@@ -45,13 +47,43 @@ pub fn simple(data: &path_gen_info) -> Vec<Point>{
 
 }
 
-///Randomly generate the points wihin the shape
-/// Theoretically could take forever if the points never hit a cell 
-pub fn scattershot(data: &path_gen_info) -> Vec<Point>{
+///Spread points within a shape on a heightmap
+fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> Vec<Point>{
+
 
     let mut points : Vec<Point> = vec![];
 
-    let pnt_cnt = data.detect_info.get("points_per_shape").unwrap();
+
+    let mut placed = 0;
+
+        while placed < no_of_points{
+            //Place the point in a random spot 
+            let genned_point : [usize; 2]= [rand::random_range(shape.min().x()..shape.max().x()), rand::random_range(shape.min().y()..shape.max().y())];
+
+
+  
+            let cell_val = map.get_cell_height(genned_point[0], genned_point[1]).unwrap();
+
+            //If invalid cell fire again
+            if cell_val == 0.0 || cell_val.is_nan(){
+                continue
+            }else{
+                points.push(Point::create(genned_point[0], genned_point[1]));
+                placed += 1;
+            }
+        }
+
+        points
+
+}
+
+///Randomly generate the points wihin the shape
+/// Theoretically could take forever if the points never hit a cell 
+pub fn scattershot(data: &PathGenInfo) -> Vec<Point>{
+
+    let mut points : Vec<Point> = vec![];
+
+    let no_of_points = data.detect_info.get("points_per_shape").unwrap();
 
 
 
@@ -61,25 +93,9 @@ pub fn scattershot(data: &path_gen_info) -> Vec<Point>{
     //For each shape
     for shape in &data.detected_shapes{
 
-        let mut placed = 0.0f64;
+        let mut shape_pnts = spread_points(shape, *no_of_points as u32, &data.difference_map);
 
-        while placed < *pnt_cnt{
-            //Place the point in a random spot 
-            let genned_point : [usize; 2]= [rand::random_range(shape.min().x()..shape.max().x()), rand::random_range(shape.min().y()..shape.max().y())];
-
-
-  
-            let cell_val = data.difference_map.get_cell_height(genned_point[0], genned_point[1]).unwrap();
-
-            //If invalid cell fire again
-            if cell_val == 0.0 || cell_val.is_nan(){
-                continue
-            }else{
-                points.push(Point::create(genned_point[0], genned_point[1]));
-                placed += 1.0;
-            }
-
-        }
+        points.append(&mut shape_pnts);
     }
 
 
@@ -88,7 +104,7 @@ pub fn scattershot(data: &path_gen_info) -> Vec<Point>{
 }
 
 ///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
-pub fn voronoi_approx(data : &path_gen_info) -> Vec<Point>{
+pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
 
     /*
     Overarching plan (LLoyds algorithm -if computationally slow attempt the fortune algorithm?):
@@ -101,6 +117,20 @@ pub fn voronoi_approx(data : &path_gen_info) -> Vec<Point>{
             -Place the point in the center
             -Start again   
      */
+
+    
+    //Create an Arc of the heightmap so that it can be shared and readable 
+    let arc_map = Arc::new(&data.difference_map);
+
+    let final_points : Vec<Point> = vec![];
+
+    let mut thread_count = 0;
+
+    let pnt_pipe : (Sender<Vec<Point>>, Receiver<Vec<Point>>) = mpsc::channel();
+
+   
+    //Need to wait until all threads have completed point calculation
+    
 
 
     todo!()
