@@ -244,6 +244,9 @@ impl DeformShape{
         self.min
     }
 
+}
 
+///Graph structure -- consider using PetGraph
+pub struct Graph{
 
 }

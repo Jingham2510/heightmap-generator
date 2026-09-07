@@ -463,7 +463,7 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
 
         //Format the save string and save the pointmap
         //Format the save string and save the edgemap
-           let path = format!("{}/debug_out/waypoints", env::current_dir().unwrap().display());
+            let path = format!("{}/debug_out/waypoints", env::current_dir().unwrap().display());
             let result = point_map.save_to_file(&path);
             match result {
                 Ok(_good) => {
