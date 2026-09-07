@@ -140,7 +140,7 @@ pub fn edge_vector_to_hash(edges : &Vec<Edge>) ->HashMap<(usize,usize), Vec<Dire
             edge.dir.clone()
         );    
     }
-    return edge_hashmap;
+    edge_hashmap
 }
 
 

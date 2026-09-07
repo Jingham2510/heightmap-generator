@@ -223,7 +223,7 @@ pub fn hmap_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
             "apply" => {
                 
                 //Update the currently loaded heightmap
-                app.hmap_gen_info.loaded_hmap.update_section(app.hmap_gen_info.generated_hmap.clone());
+                let _ = app.hmap_gen_info.loaded_hmap.update_section(app.hmap_gen_info.generated_hmap.clone());
 
                 //Turn the overlay off
                 app.hmap_gen_info.overlay_on = false;

@@ -37,7 +37,7 @@ pub fn pathmoving_core(app : &mut App, frame : &mut Frame, widget : Rect){
 
 
     //Place the CLI
-    ui_shared::render_CLI(app, frame, outer_layout[1]);
+    ui_shared::render_cmd_line(app, frame, outer_layout[1]);
 
 
 }
@@ -49,7 +49,7 @@ fn render_control_panel(app: &mut App, frame : &mut Frame, widget : Rect){
      //TODO: can rearrange fill priority based on textual requirements
     let control_panel_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![Constraint::Percentage(10),Constraint::Percentage(5), Constraint::Fill(1) ,Constraint::Percentage(8),Constraint::Fill(1)])
+        .constraints(vec![Constraint::Percentage(10),Constraint::Percentage(7), Constraint::Fill(1) ,Constraint::Percentage(8),Constraint::Fill(1)])
         .split(widget);
 
 

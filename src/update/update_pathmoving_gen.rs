@@ -1,6 +1,5 @@
-use crate::app::path_gen_info;
 use crate::trajectorygen::types::Point;
-use crate::trajectorygen::{self, DetectionMode, PathGenMode, pointgen};
+use crate::trajectorygen::{DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
 use crate::trajectorygen::{edgedetection, types::Direction};
@@ -12,11 +11,10 @@ use crate::{
     app::{App}
 };
 use ratatui::style::Color;
-use rustgeomapping::analysis::analyser::ForceSel::Y;
 use rustgeomapping::data_types::heightmap::Heightmap;
 use rustgeomapping::analysis::analyser::comp_maps;
 
-use std::{env, process::Command};
+use std::{env,};
 
 use anyhow::bail;
 
@@ -95,7 +93,16 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                         "simple" => {
                             app.path_gen_info.detect_mode = DetectionMode::SIMPLE;
                             app.path_gen_info.detect_info = DetectionMode::SIMPLE.get_default_settings();
+                        }
 
+                        "scattershot" =>{
+                            app.path_gen_info.detect_mode = DetectionMode::SCATTERSHOT;
+                            app.path_gen_info.detect_info = DetectionMode::SCATTERSHOT.get_default_settings();
+                        }
+
+                        "voronoi" =>{
+                            app.path_gen_info.detect_mode = DetectionMode::VORONOI;
+                            app.path_gen_info.detect_info = DetectionMode::VORONOI.get_default_settings();
                         }
 
                         _ => {
@@ -159,21 +166,50 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                     //Detect the deformation shapes and generate the inner points
                     match app.path_gen_info.detect_mode{
                         DetectionMode::SIMPLE =>{
-                            
+                            //Create the edge shapes
+                            app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
+
+                            //Render the edge shapes
+                            app.path_gen_info.edge_cells = render_edge_shapes(app);
+
+                            //Generate the points
+                            app.path_gen_info.generated_points = pointgen::simple(&app.path_gen_info);
+                            //Create the points to render
+                            app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);                      
+
+
+                        }
+
+                        DetectionMode::SCATTERSHOT =>{
+
+                            //Create the edge shapes
+                            app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
+
+                            //Render the edge shapes
+                            app.path_gen_info.edge_cells = render_edge_shapes(app);
+
+                            //Generate the points
+                            app.path_gen_info.generated_points = pointgen::scattershot(&app.path_gen_info);
+                            //Create the points to render
+                            app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);      
+
+                        }
+
+                        DetectionMode::VORONOI =>{
+                            //Create the edge shapes
                             app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
 
                             //Create the edge shapes
                             app.path_gen_info.edge_cells = render_edge_shapes(app);
 
                             //Generate the points
-                            app.path_gen_info.generated_points = pointgen::simple(&app.path_gen_info);
-                            //Create the points to render
-                            app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);
-                        
-
-
+                            app.path_gen_info.generated_points = pointgen::voronoi_approx(&app.path_gen_info)
+                            
                         }
+
                     }           
+
+
 
 
                 }
@@ -383,20 +419,12 @@ fn render_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
 ///Save all the debug heightmaps 
 fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
 
-
-        
-    let mut diff_saved = false;
-    let mut edge_saved = false;
-    let mut waypoint_saved = false;
-
     //Check if the difference map exists
     if app.path_gen_info.diff_map_generated{
         let path = format!("{}/debug_out/difference_map", env::current_dir().unwrap().display());
         let result = app.path_gen_info.difference_map.save_to_file(&path);
         match result {
-            Ok(_good) => {
-                diff_saved = true;
-            }
+            Ok(_good) => {}
             Err(_e) => {
                 app.curr_error = String::from("Failed to save heightmap");
                 bail!("cmd error")
@@ -427,9 +455,7 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
             let result = shape_map.save_to_file(&path);
             match result {
                 Ok(_good) => {
-                    edge_saved = true;
                     cnt += 1;
-
                 }
                 Err(_e) => {
                     app.curr_error = String::from("Failed to save edgemap");
@@ -466,9 +492,7 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
             let path = format!("{}/debug_out/waypoints", env::current_dir().unwrap().display());
             let result = point_map.save_to_file(&path);
             match result {
-                Ok(_good) => {
-                    waypoint_saved = true;
-                }
+                Ok(_good) => {}
                 Err(_e) => {
                     app.curr_error = String::from("Failed to save waypoint map");
                     bail!("cmd error")

@@ -1,4 +1,6 @@
-///Shared updating methods
+/*
+Shared updating methods
+*/
 
 
 use anyhow::bail;

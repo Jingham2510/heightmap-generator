@@ -1,4 +1,6 @@
-///UI widgets used in heightmap generation
+/*
+UI widgets used in heightmap generation
+*/
 
 
 use ratatui::{
@@ -112,7 +114,7 @@ pub fn main_page(app: &mut App, frame: &mut Frame, widget: Rect) {
         );
     }
 
-    ui_shared::render_CLI(app, frame, outer_layout[1])
+    ui_shared::render_cmd_line(app, frame, outer_layout[1])
    
 }
 
