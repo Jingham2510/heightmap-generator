@@ -40,6 +40,21 @@ impl Point{
     pub fn y(&self) -> usize{
         self.y
     }
+
+    pub fn x_f32(&self) ->f32{
+        self.x as f32
+    }
+    pub fn y_f32(&self) ->f32{
+        self.y as f32
+    }
+
+    //Returns the euclidian distance (l2) between two points
+    pub fn eucl_distance(p1 : &Point, p2 : &Point) -> f32{
+
+        ((p1.x_f32() - p2.x_f32()).powf(2.0) + (p1.y_f32() - p2.y_f32()).powf(2.0)).sqrt()
+
+    }
+
 }
 
 

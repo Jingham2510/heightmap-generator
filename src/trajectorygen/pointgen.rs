@@ -118,6 +118,12 @@ impl Into<VoronoiCell> for &Point{
     }
 }
 
+impl Default for VoronoiCell{
+    fn default() -> Self {
+        Self { focus: Default::default(), closest: Default::default() }
+    }
+}
+
 impl VoronoiCell{
     fn get_closest(self) -> Vec<Point>{
         self.closest
@@ -200,7 +206,7 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<Point>{
     }
     */
 
-    todo!()
+    final_points
 
 }
 
@@ -229,22 +235,21 @@ fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, m
     for i in 0u32..*iterations{
 
         //Generate the diagram from the points and get the point collections
+        let cells = lazy_voronoi_calc(&points, shape, map);
 
         //Find the centroid from each cell (potential to sit outside the shape - edge case?)
+        let new_points = calc_centroids(cells);
 
         //Create new points from each centroid
-
-
-        
+        points = new_points;        
     }
 
-
-    todo!();
+    points
 }
 
 
 ///Brute force voronoi cell identification
-fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap) -> Vec<Vec<Point>>{
+fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap) -> Vec<VoronoiCell>{
     
     let mut v_cells : Vec<VoronoiCell> = vec![];
 
@@ -257,14 +262,63 @@ fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap
     for x in shape.x_range(){
         for y in shape.y_range(){
 
+            let val = map.get_cell_height(x, y).unwrap();
+
+            //Check that the point is valid
+            if val == 0.0 || val.is_nan(){
+                continue;
+            }
+
+            //Create the current point
+            let curr_pnt = Point::create(x, y);
+
+
+            //Create the default closest point
+            let mut cell_index = 0usize;
+            let mut dist = 99999.0;
+
+            //Find out which point it is closest to
+            for i in 0..v_cells.len(){
+                let curr_dist = Point::eucl_distance(&curr_pnt, &v_cells[i].focus);
+                if  curr_dist< dist{
+                    cell_index = i;
+                    dist = curr_dist;
+                }
+            }
+
+            //Add the point to the currnet home cell
+            v_cells[cell_index].add_point(curr_pnt);
         }
 
     }
 
+    v_cells
+
+}
+
+///Calculate centroids as the mean location of all points
+fn calc_centroids(cell_points : Vec<VoronoiCell>) -> Vec<Point>{
+
+    let mut new_centroids : Vec<Point> = vec![];
+
+    for cell in cell_points{
+        let mut x = 0;
+        let mut y = 0;
+
+        let mut no_of_points = 0 ;
+
+        for point in cell.get_closest(){
+            x += point.x();
+            y += point.y();
+
+            no_of_points += 1;
+        }
+
+        new_centroids.push(Point::create(x as usize / no_of_points , y as usize / no_of_points));
+
+    }
 
 
+    new_centroids
 
-
-
-    todo!();
 }
