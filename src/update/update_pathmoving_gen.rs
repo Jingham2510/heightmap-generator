@@ -203,7 +203,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             app.path_gen_info.edge_cells = render_edge_shapes(app);
 
                             //Generate the points
-                            app.path_gen_info.generated_points = pointgen::voronoi_approx(&app.path_gen_info)
+                            app.path_gen_info.generated_points = pointgen::voronoi(&app.path_gen_info)
                             
                         }
 

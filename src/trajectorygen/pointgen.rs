@@ -22,8 +22,8 @@ pub fn simple(data: &PathGenInfo) -> Vec<Point>{
 
       
         //Go through every cell that sits inside the shapes rectangle
-        for x in (shape.min().x()..shape.max().x()).step_by((tool_width/2.0) as usize){
-            for y in shape.min().y()..shape.max().y(){
+        for x in (shape.x_range()).step_by((tool_width/2.0) as usize){
+            for y in shape.y_range(){
 
                 //Check if there is a depth disparty in the cell
                 //If there is depth disparity we know we are inside a shape
@@ -58,7 +58,7 @@ fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> 
 
         while placed < no_of_points{
             //Place the point in a random spot 
-            let genned_point : [usize; 2]= [rand::random_range(shape.min().x()..shape.max().x()), rand::random_range(shape.min().y()..shape.max().y())];
+            let genned_point : [usize; 2]= [rand::random_range(shape.x_range()), rand::random_range(shape.y_range())];
 
 
   
@@ -103,20 +103,39 @@ pub fn scattershot(data: &PathGenInfo) -> Vec<Point>{
 
 }
 
-///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
-pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
 
-    /*
-    Overarching plan (LLoyds algorithm -if computationally slow attempt the fortune algorithm?):
-    -For each shape - spin up a thread
-    -In each thread:
-        -First, randomly spread the points throughout the shape
-        -Then for the number of iterations (or until each point moves a minimal amount)
-            -Generate the voronoi diagram
-            -find the centroid of each cell
-            -Place the point in the center
-            -Start again   
-     */
+///Voronoi cell structure
+struct VoronoiCell{
+    ///The focus point of the cell
+    focus : Point,
+    ///The set of points that exist that are closest to this cell
+    closest : Vec<Point>
+}
+
+impl Into<VoronoiCell> for &Point{
+    fn into(self) -> VoronoiCell {
+        VoronoiCell { focus: self.clone(), closest: vec![] }
+    }
+}
+
+impl VoronoiCell{
+    fn get_closest(self) -> Vec<Point>{
+        self.closest
+    }
+
+    fn focus(&self) -> Point{
+        self.focus
+    }
+
+    fn add_point(&mut self, pnt : Point){
+        self.closest.push(pnt)
+    }
+}
+
+
+///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
+pub fn voronoi(data : &PathGenInfo) -> Vec<Point>{
+
 
     //Load the user specified values
     let points_per_shape = data.detect_info.get("points_per_shape").unwrap();
@@ -124,17 +143,29 @@ pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
 
 
     
-    //Create an Arc of the heightmap so that it can be shared and readable 
-    let arc_map = Arc::new(&data.difference_map);
 
     let mut final_points : Vec<Point> = vec![];
+
+
+   
+    for shape in &data.detected_shapes{
+
+        final_points.append(&mut voronoi_gen(&(*iterations as u32), &(*points_per_shape as u32), shape, &data.difference_map))
+
+    }
+
+
+
+    //Need to wait until all threads have completed point calculation
+
+    /*in progress parallelised version
+    //Create an Arc of the heightmap so that it can be shared and readable 
+    let arc_map = Arc::new(&data.difference_map);
 
     let mut thread_count = 0;
 
     let pnt_pipe : (Sender<Vec<Point>>, Receiver<Vec<Point>>) = mpsc::channel();
 
-   
-    //Need to wait until all threads have completed point calculation
     for shape in &data.detected_shapes    {
 
         let shape_clone = shape.clone();
@@ -146,13 +177,11 @@ pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
         //Create the voronoi thread
         let _ = thread::spawn(move || {
             
-            let pnts = voronoi_gen(it_clone, pnt_cnt_clone, shape_clone, map_clone);
+            let pnts = voronoi_gen(&it_clone, &pnt_cnt_clone, &shape_clone, &map_clone);
 
             send_clone.send(pnts);
 
         });
-
-
 
         //Increase the thread count
         thread_count += 1;
@@ -162,12 +191,14 @@ pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
     //Wait for all of the threads to finish
     while thread_count != 0{
 
+        //Read all of the points (order doesn't necessarily matter)
         let mut pnts = pnt_pipe.1.recv().unwrap();
 
         final_points.append(&mut pnts);
 
         thread_count -= 1;
     }
+    */
 
     todo!()
 
@@ -176,12 +207,63 @@ pub fn voronoi_approx(data : &PathGenInfo) -> Vec<Point>{
 
 
 ///For a given shape on a given map, generate an approximate equal spread of points
-fn voronoi_gen(iterations : i32, pnts_per_shape : i32, shape : &DeformShape, map : Arc<&Heightmap>) -> Vec<Point>{
-
-    //Generate the initial random points
+fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, map : &Heightmap) -> Vec<Point>{
+    
+    
+    /*
+    Overarching plan (LLoyds algorithm -if computationally slow attempt the fortune algorithm?):
+        -First, randomly spread the points throughout the shape
+        -Then for the number of iterations (or until each point moves a minimal amount)
+            -Generate the voronoi diagram
+            -find the centroid of each cell
+            -Place the point in the center
+            -Start again   
+     */
+    
+    
+    //Generate the initial random points within the shape
+    let mut points = spread_points(shape, *pnts_per_shape, map);
 
     
     //For the number of iterations specified
+    for i in 0u32..*iterations{
+
+        //Generate the diagram from the points and get the point collections
+
+        //Find the centroid from each cell (potential to sit outside the shape - edge case?)
+
+        //Create new points from each centroid
+
+
+        
+    }
+
+
+    todo!();
+}
+
+
+///Brute force voronoi cell identification
+fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap) -> Vec<Vec<Point>>{
+    
+    let mut v_cells : Vec<VoronoiCell> = vec![];
+
+    //Create the cells from the focuses (focii?)
+    for focus in focii{
+        v_cells.push(focus.into())
+    }
+
+    //Go through every single point in the shape
+    for x in shape.x_range(){
+        for y in shape.y_range(){
+
+        }
+
+    }
+
+
+
+
 
 
     todo!();

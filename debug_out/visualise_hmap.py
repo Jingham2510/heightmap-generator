@@ -78,7 +78,12 @@ class HeightMap:
         plt.scatter(X, Y)
 
         plt.title(f"{title}")
-        plt.savefig(f"{title}.png", dpi =200)
+        
+        ax = plt.gca()
+        ax.set_aspect("equal")
+        
+        plt.savefig(f"{title}.png", dpi =200)       
+        
 
         plt.close()
 
@@ -162,7 +167,7 @@ if __name__ == "__main__":
                 diff_loaded = True
 
             #Edge map creation
-            case _ if "edges" in arg:
+            case _ if "--edges" in arg:
                 split_arg = arg.split("_")
 
                 for i in range(int(split_arg[1]) + 1):

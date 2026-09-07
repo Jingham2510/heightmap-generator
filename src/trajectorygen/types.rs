@@ -1,4 +1,4 @@
-use std::ops::{Add, Div};
+use std::ops::{Add, Div, Range};
 use std::collections::HashMap;
 use std::f64;
 
@@ -242,6 +242,14 @@ impl DeformShape{
 
     pub fn min(&self) -> Point{
         self.min
+    }
+
+    pub fn x_range(&self) -> Range<usize>{
+        self.min.x()..self.max.x()
+    }
+
+    pub fn y_range(&self) -> Range<usize>{
+        self.min.y()..self.max.y()
     }
 
 }
