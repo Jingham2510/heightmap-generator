@@ -1,3 +1,4 @@
+use petgraph::{Graph, Undirected};
 use rustgeomapping::data_types::heightmap::Heightmap;
 use std::collections::HashMap;
 
@@ -6,7 +7,7 @@ use ratatui::{
     widgets::canvas::{Painter, Shape},
 };
 
-use crate::trajectorygen::{DetectionMode, PathGenMode, types::{DeformShape, PixelPoint}};
+use crate::trajectorygen::{DetectionMode, PathGenMode, types::{DeformShape, PixelPoint, WayPoint}};
 
 ///Types of deformation
 #[derive(Debug, Default)]
@@ -150,6 +151,9 @@ pub struct PathGenInfo{
     ///Path generation mode
     pub path_mode : PathGenMode,
     pub path_info : HashMap<String, f64>,
+
+    //The waypoint graph
+    pub wpnt_graph : Graph<WayPoint, f32, Undirected>
 
 }
 

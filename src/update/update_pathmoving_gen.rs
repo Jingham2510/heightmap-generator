@@ -232,9 +232,8 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
 
                             //Create a graph from the generated points
-                            let graph = graphgen::create_graph_simple(waypoints);
+                            app.path_gen_info.wpnt_graph = graphgen::create_graph_simple(waypoints);
 
-                            println!("{:?}", graph);
 
                         }
                     }
