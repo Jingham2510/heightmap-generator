@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import re
 import numpy as np
 import math
+import pygraphviz as pgv
 
 
 class HeightMap:
@@ -152,6 +153,20 @@ def heightmap_from_file(file, skip_first):
 
     return HeightMap(lower_bounds, upper_bounds, cells)
 
+"""
+Load a graph in DOT format and turn it into a png
+"""
+def dot_to_img(load_filepath, save_filepath):
+    #Load the DOT file
+    G = pgv.AGraph(load_filepath)
+
+    #Set the layout
+    G.layout()
+
+    #Save the graph
+    G.draw(f"{save_filepath}.png")
+
+    return
 
 if __name__ == "__main__":
 
@@ -177,9 +192,13 @@ if __name__ == "__main__":
 
 
             #Point map creation
-            case "--waypoint":
+            case "--waypoints":
                 points_map = heightmap_from_file(open("debug_out/waypoints.txt"), False)
                 points_map.save_as_scatter("debug_out/waypoints")
+
+            #Graph visualisation
+            case "--graph":
+                dot_to_img("debug_out/out_graph.dot", "debug_out/wp_graph")
    
    
 
