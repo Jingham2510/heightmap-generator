@@ -4,6 +4,7 @@ use crate::trajectorygen::{DetectionMode, PathGenMode, pointgen};
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
 use crate::trajectorygen::{edgedetection, types::{Direction, WayPoint}, graphgen};
 
+use petgraph::dot::{Config, Dot};
 
 
 
@@ -14,7 +15,7 @@ use ratatui::style::Color;
 use rustgeomapping::data_types::heightmap::Heightmap;
 use rustgeomapping::analysis::analyser::comp_maps;
 
-use std::{env,};
+use std::{env, path,};
 
 use anyhow::bail;
 
@@ -220,6 +221,11 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                 //Generate the path from the created points
                 "path" =>{
+
+                    if app.path_gen_info.generated_points.len() == 0{
+                        app.curr_error = String::from("No points to create path from!");
+                        bail!("cmd error")
+                    }
 
                     match app.path_gen_info.path_mode{
                         PathGenMode::TESTING =>{
@@ -503,7 +509,6 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
         }
 
         //Format the save string and save the pointmap
-        //Format the save string and save the edgemap
             let path = format!("{}/debug_out/waypoints", env::current_dir().unwrap().display());
             let result = point_map.save_to_file(&path);
             match result {
@@ -513,6 +518,25 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
                     bail!("cmd error")
                 }
             }
+
+    }
+
+    //Save a generated graph to a DOT format file
+    if app.path_gen_info.wpnt_graph.node_count() != 0{
+
+        //Create the basic DOT export
+        let dot = Dot::new(&app.path_gen_info.wpnt_graph);
+
+        let path = format!("{}/debug_out/out_graph.dot", env::current_dir().unwrap().display());
+        let result = std::fs::write(&path, format!("{:?}", dot));
+        match result {
+            Ok(_good) => {}
+            Err(_e) => {
+                app.curr_error = String::from("Failed to save waypoint map");
+                bail!("cmd error")
+            }
+        }
+
 
     }
 
