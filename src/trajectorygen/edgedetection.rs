@@ -1,12 +1,12 @@
 ///Methods to detect the edges of earthshapes
-use crate::trajectorygen::types::{DeformShape, Edge, Direction};
+use crate::trajectorygen::types::{DeformShape, ShapeEdge, Direction};
 use rustgeomapping::data_types::heightmap::Heightmap;
 
 //Assumes that there is only one shape
 //Goes through each cell and checks to see if there is a NAN next to it
 pub fn simple(hmap : &Heightmap) -> DeformShape{
     
-    let mut edges :Vec<Edge> = vec![];   
+    let mut edges :Vec<ShapeEdge> = vec![];   
 
 
     //Go through every column (ignoring edges)
@@ -28,7 +28,7 @@ pub fn simple(hmap : &Heightmap) -> DeformShape{
                 continue;
             }else{
                 //If edges exist create the edge object 
-                edges.push(Edge::create(x, y, dirs))
+                edges.push(ShapeEdge::create(x, y, dirs))
             }
         }
 

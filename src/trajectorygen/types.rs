@@ -2,17 +2,19 @@ use std::ops::{Add, Div, Range};
 use std::collections::HashMap;
 use std::f64;
 
+use nalgebra::{matrix, Matrix3, Vector3};
+
 ///A point which describes a cell location
 #[derive(Debug, Default, Clone, Copy)]
-pub struct Point{
+pub struct PixelPoint{
     x : usize,
     y : usize,
 }
 
-impl Point{
+impl PixelPoint{
     ///Create a point
     pub fn create(x : usize, y :usize) -> Self{
-        Point{
+        PixelPoint{
             x,
             y
         }
@@ -49,7 +51,7 @@ impl Point{
     }
 
     //Returns the euclidian distance (l2) between two points
-    pub fn eucl_distance(p1 : &Point, p2 : &Point) -> f32{
+    pub fn eucl_distance(p1 : &PixelPoint, p2 : &PixelPoint) -> f32{
 
         ((p1.x_f32() - p2.x_f32()).powf(2.0) + (p1.y_f32() - p2.y_f32()).powf(2.0)).sqrt()
 
@@ -58,7 +60,7 @@ impl Point{
 }
 
 
-impl Add for Point{
+impl Add for PixelPoint{
     type Output = Self;
 
     fn add(self, other : Self) -> Self{
@@ -70,7 +72,7 @@ impl Add for Point{
 
 }
 
-impl Div<usize> for Point{
+impl Div<usize> for PixelPoint{
     type Output = Self;
 
     ///Divide the points by a scalar factor 
@@ -98,22 +100,22 @@ pub enum Direction{
 
 ///An edge which describes the cell and the direction(s) of the edge
 #[derive(Debug, Clone)]
-pub struct Edge{
-    cell : Point,
+pub struct ShapeEdge{
+    cell : PixelPoint,
     dir : Vec<Direction>
 }
 
-impl Edge{
+impl ShapeEdge{
     ///Create an edge object
     pub fn create(x : usize, y: usize, dir : Vec<Direction>) -> Self{
-        Edge{
-            cell : Point::create(x, y),
+        ShapeEdge{
+            cell : PixelPoint::create(x, y),
             dir
         }
     }
 
     ///Get the position of the edge
-    pub fn cell(&self) -> Point{
+    pub fn cell(&self) -> PixelPoint{
         self.cell
     }
 
@@ -145,7 +147,7 @@ impl Edge{
 
 
 ///Turn a list of edges into a searchable hashmap
-pub fn edge_vector_to_hash(edges : &Vec<Edge>) ->HashMap<(usize,usize), Vec<Direction>>{
+pub fn edge_vector_to_hash(edges : &Vec<ShapeEdge>) ->HashMap<(usize,usize), Vec<Direction>>{
     let mut edge_hashmap : HashMap<(usize,usize), Vec<Direction>> = HashMap::new();
 
 
@@ -163,16 +165,16 @@ pub fn edge_vector_to_hash(edges : &Vec<Edge>) ->HashMap<(usize,usize), Vec<Dire
 
 ///A shape that consists of edges and a centre point
 pub struct DeformShape{
-    edges : Vec<Edge>,
-    centre : Point,
-    max : Point,
-    min : Point
+    edges : Vec<ShapeEdge>,
+    centre : PixelPoint,
+    max : PixelPoint,
+    min : PixelPoint
 }
 
 ///Create a shape from a set of edges
 ///Calculates the center as the geometric center (i.e. halfway inbetween the max/min)
-impl From<Vec<Edge>> for DeformShape{
-    fn from(set : Vec<Edge>) -> Self{
+impl From<Vec<ShapeEdge>> for DeformShape{
+    fn from(set : Vec<ShapeEdge>) -> Self{
 
 
         let mut max_x = 0usize;
@@ -219,16 +221,16 @@ impl From<Vec<Edge>> for DeformShape{
 
 
 
-        let centre_pnt = Point::create(
+        let centre_pnt = PixelPoint::create(
             (min_x + max_x)/2 ,
             (min_y + max_y)/2
         );        
 
-        let max_pnt = Point::create(
+        let max_pnt = PixelPoint::create(
             max_x, max_y
         );
 
-        let min_pnt = Point::create(
+        let min_pnt = PixelPoint::create(
             min_x, min_y
         );
 
@@ -243,19 +245,19 @@ impl From<Vec<Edge>> for DeformShape{
 impl DeformShape{
 
     ///Return a borrowed set of edges
-    pub fn edges(&self) -> &Vec<Edge>{
+    pub fn edges(&self) -> &Vec<ShapeEdge>{
         &self.edges
     }
 
-    pub fn centre(&self) -> &Point{
+    pub fn centre(&self) -> &PixelPoint{
         &self.centre
     }
 
-    pub fn max(&self) -> Point{
+    pub fn max(&self) -> PixelPoint{
         self.max
     }
 
-    pub fn min(&self) -> Point{
+    pub fn min(&self) -> PixelPoint{
         self.min
     }
 
@@ -269,7 +271,49 @@ impl DeformShape{
 
 }
 
-///Graph structure -- consider using PetGraph
-pub struct Graph{
+
+///Waypoint representing a real point in the robot world space
+struct WayPoint{
+    x : f32,
+    y : f32,
+    z : f32
+}
+
+impl WayPoint{
+
+    ///Transform the pixel using known calibration values into a worldspace waypoint
+    pub fn from_pixel(point : PixelPoint, depth : f32) -> Self{
+        //known precalculated transform points
+        const TRANSFORM : Matrix3<f32> = matrix![1.0, 0.0, 0.0;
+                                               0.0, 1.0, 0.0;
+                                               0.0, 0.0, 1.0];
+
+        //Expand the point so it can be multipled by the homogenous transform                                            
+        let temp_pnt : Vector3<f32> = Vector3::new(point.x_f32(), point.y_f32(), 1.0);
+
+        //Transform the XY pixels into the world space
+        let pnt = TRANSFORM * temp_pnt;
+
+        //The depth is already in the world space (as measured by calibrated heightmaps)
+        Self{
+            x : pnt[0],
+            y : pnt[1],
+            z : depth
+        }      
+    }
+
+    pub fn x(&self) -> f32{
+        self.x
+    }
+
+     pub fn y(&self) -> f32{
+        self.y
+    }
+
+     pub fn z(&self) -> f32{
+        self.z
+    }
+
+
 
 }

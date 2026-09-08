@@ -5,9 +5,9 @@ use rustgeomapping::data_types::heightmap::Heightmap;
 
 ///Generate points inside a shape
 /// distance based on tool width
-pub fn simple(data: &PathGenInfo) -> Vec<Point>{
+pub fn simple(data: &PathGenInfo) -> Vec<PixelPoint>{
 
-    let mut points : Vec<Point> = vec![];
+    let mut points : Vec<PixelPoint> = vec![];
 
 
     //Due to the method selected 'toolwidth' is a guaranteed key
@@ -35,7 +35,7 @@ pub fn simple(data: &PathGenInfo) -> Vec<Point>{
 
                 //Calculate the marker spacing in terms of the local shape coordinates
                 if (y - shape.min().y()) as f64 % max_count == 0.0{
-                    points.push(Point::create(x, y));
+                    points.push(PixelPoint::create(x, y));
                 }
             }
         }
@@ -48,10 +48,10 @@ pub fn simple(data: &PathGenInfo) -> Vec<Point>{
 }
 
 ///Spread points within a shape on a heightmap
-fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> Vec<Point>{
+fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> Vec<PixelPoint>{
 
 
-    let mut points : Vec<Point> = vec![];
+    let mut points : Vec<PixelPoint> = vec![];
 
 
     let mut placed = 0;
@@ -68,7 +68,7 @@ fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> 
             if cell_val == 0.0 || cell_val.is_nan(){
                 continue
             }else{
-                points.push(Point::create(genned_point[0], genned_point[1]));
+                points.push(PixelPoint::create(genned_point[0], genned_point[1]));
                 placed += 1;
             }
         }
@@ -79,9 +79,9 @@ fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> 
 
 ///Randomly generate the points wihin the shape
 /// Theoretically could take forever if the points never hit a cell 
-pub fn scattershot(data: &PathGenInfo) -> Vec<Point>{
+pub fn scattershot(data: &PathGenInfo) -> Vec<PixelPoint>{
 
-    let mut points : Vec<Point> = vec![];
+    let mut points : Vec<PixelPoint> = vec![];
 
     let no_of_points = data.detect_info.get("points_per_shape").unwrap();
 
@@ -107,12 +107,12 @@ pub fn scattershot(data: &PathGenInfo) -> Vec<Point>{
 ///Voronoi cell structure
 struct VoronoiCell{
     ///The focus point of the cell
-    focus : Point,
+    focus : PixelPoint,
     ///The set of points that exist that are closest to this cell
-    closest : Vec<Point>
+    closest : Vec<PixelPoint>
 }
 
-impl Into<VoronoiCell> for &Point{
+impl Into<VoronoiCell> for &PixelPoint{
     fn into(self) -> VoronoiCell {
         VoronoiCell { focus: self.clone(), closest: vec![] }
     }
@@ -125,22 +125,22 @@ impl Default for VoronoiCell{
 }
 
 impl VoronoiCell{
-    fn get_closest(self) -> Vec<Point>{
+    fn get_closest(self) -> Vec<PixelPoint>{
         self.closest
     }
 
-    fn focus(&self) -> Point{
+    fn focus(&self) -> PixelPoint{
         self.focus
     }
 
-    fn add_point(&mut self, pnt : Point){
+    fn add_point(&mut self, pnt : PixelPoint){
         self.closest.push(pnt)
     }
 }
 
 
 ///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
-pub fn voronoi(data : &PathGenInfo) -> Vec<Point>{
+pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
 
 
     //Load the user specified values
@@ -150,7 +150,7 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<Point>{
 
     
 
-    let mut final_points : Vec<Point> = vec![];
+    let mut final_points : Vec<PixelPoint> = vec![];
 
 
    
@@ -211,10 +211,8 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<Point>{
 }
 
 
-
 ///For a given shape on a given map, generate an approximate equal spread of points
-fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, map : &Heightmap) -> Vec<Point>{
-    
+fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, map : &Heightmap) -> Vec<PixelPoint>{    
     
     /*
     Overarching plan (LLoyds algorithm -if computationally slow attempt the fortune algorithm?):
@@ -249,7 +247,7 @@ fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, m
 
 
 ///Brute force voronoi cell identification
-fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap) -> Vec<VoronoiCell>{
+fn lazy_voronoi_calc(focii : &Vec<PixelPoint>, shape : &DeformShape, map : &Heightmap) -> Vec<VoronoiCell>{
     
     let mut v_cells : Vec<VoronoiCell> = vec![];
 
@@ -270,7 +268,7 @@ fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap
             }
 
             //Create the current point
-            let curr_pnt = Point::create(x, y);
+            let curr_pnt = PixelPoint::create(x, y);
 
 
             //Create the default closest point
@@ -279,7 +277,7 @@ fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap
 
             //Find out which point it is closest to
             for i in 0..v_cells.len(){
-                let curr_dist = Point::eucl_distance(&curr_pnt, &v_cells[i].focus);
+                let curr_dist = PixelPoint::eucl_distance(&curr_pnt, &v_cells[i].focus);
                 if  curr_dist< dist{
                     cell_index = i;
                     dist = curr_dist;
@@ -297,9 +295,9 @@ fn lazy_voronoi_calc(focii : &Vec<Point>, shape : &DeformShape, map : &Heightmap
 }
 
 ///Calculate centroids as the mean location of all points
-fn calc_centroids(cell_points : Vec<VoronoiCell>) -> Vec<Point>{
+fn calc_centroids(cell_points : Vec<VoronoiCell>) -> Vec<PixelPoint>{
 
-    let mut new_centroids : Vec<Point> = vec![];
+    let mut new_centroids : Vec<PixelPoint> = vec![];
 
     for cell in cell_points{
         let mut x = 0;
@@ -314,7 +312,7 @@ fn calc_centroids(cell_points : Vec<VoronoiCell>) -> Vec<Point>{
             no_of_points += 1;
         }
 
-        new_centroids.push(Point::create(x as usize / no_of_points , y as usize / no_of_points));
+        new_centroids.push(PixelPoint::create(x as usize / no_of_points , y as usize / no_of_points));
 
     }
 

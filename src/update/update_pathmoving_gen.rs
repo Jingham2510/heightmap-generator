@@ -1,4 +1,4 @@
-use crate::trajectorygen::types::Point;
+use crate::trajectorygen::types::PixelPoint;
 use crate::trajectorygen::{DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
@@ -404,7 +404,7 @@ fn render_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 }
 
 ///Create the waypoint drawing cells
-fn render_waypoint_cells(points : &Vec<Point>) -> Vec<(f64, f64, Color)>{
+fn render_waypoint_cells(points : &Vec<PixelPoint>) -> Vec<(f64, f64, Color)>{
 
     //Magic number for now 
     let max = 1000.0;
