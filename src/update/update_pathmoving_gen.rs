@@ -2,7 +2,7 @@ use crate::trajectorygen::types::PixelPoint;
 use crate::trajectorygen::{DetectionMode, PathGenMode, pointgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
-use crate::trajectorygen::{edgedetection, types::Direction};
+use crate::trajectorygen::{edgedetection, types::{Direction, WayPoint}, graphgen};
 
 
 
@@ -223,7 +223,19 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                     match app.path_gen_info.path_mode{
                         PathGenMode::TESTING =>{
+
+                            //For each point - grab the depth
+                            let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
                             
+                            //Turn the pixel points into waypoints
+                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+
+
+                            //Create a graph from the generated points
+                            let graph = graphgen::create_graph_simple(waypoints);
+
+                            println!("{:?}", graph);
+
                         }
                     }
                 }

@@ -1,4 +1,3 @@
-use std::{sync::{Arc, mpsc::{self, Receiver, Sender}}, thread};
 
 use crate::{app::{PathGenInfo}, trajectorygen::types::*};
 use rustgeomapping::data_types::heightmap::Heightmap;
@@ -105,6 +104,7 @@ pub fn scattershot(data: &PathGenInfo) -> Vec<PixelPoint>{
 
 
 ///Voronoi cell structure
+#[derive(Default)]
 struct VoronoiCell{
     ///The focus point of the cell
     focus : PixelPoint,
@@ -112,17 +112,12 @@ struct VoronoiCell{
     closest : Vec<PixelPoint>
 }
 
-impl Into<VoronoiCell> for &PixelPoint{
-    fn into(self) -> VoronoiCell {
-        VoronoiCell { focus: self.clone(), closest: vec![] }
+impl From<&PixelPoint> for VoronoiCell{
+    fn from(val: &PixelPoint) -> Self {
+        VoronoiCell { focus: *val, closest: vec![] }
     }
 }
 
-impl Default for VoronoiCell{
-    fn default() -> Self {
-        Self { focus: Default::default(), closest: Default::default() }
-    }
-}
 
 impl VoronoiCell{
     fn get_closest(self) -> Vec<PixelPoint>{
@@ -230,7 +225,7 @@ fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, m
 
     
     //For the number of iterations specified
-    for i in 0u32..*iterations{
+    for _i in 0u32..*iterations{
 
         //Generate the diagram from the points and get the point collections
         let cells = lazy_voronoi_calc(&points, shape, map);
@@ -276,8 +271,8 @@ fn lazy_voronoi_calc(focii : &Vec<PixelPoint>, shape : &DeformShape, map : &Heig
             let mut dist = 99999.0;
 
             //Find out which point it is closest to
-            for i in 0..v_cells.len(){
-                let curr_dist = PixelPoint::eucl_distance(&curr_pnt, &v_cells[i].focus);
+            for (i, cell) in v_cells.iter().enumerate(){
+                let curr_dist = PixelPoint::eucl_distance(&curr_pnt, &cell.focus);
                 if  curr_dist< dist{
                     cell_index = i;
                     dist = curr_dist;
@@ -312,7 +307,7 @@ fn calc_centroids(cell_points : Vec<VoronoiCell>) -> Vec<PixelPoint>{
             no_of_points += 1;
         }
 
-        new_centroids.push(PixelPoint::create(x as usize / no_of_points , y as usize / no_of_points));
+        new_centroids.push(PixelPoint::create(x / no_of_points , y / no_of_points));
 
     }
 

@@ -1,8 +1,11 @@
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::ops::{Add, Div, Range};
 use std::collections::HashMap;
 use std::f64;
 
 use nalgebra::{matrix, Matrix3, Vector3};
+use anyhow::{Error, bail};
 
 ///A point which describes a cell location
 #[derive(Debug, Default, Clone, Copy)]
@@ -52,9 +55,19 @@ impl PixelPoint{
 
     //Returns the euclidian distance (l2) between two points
     pub fn eucl_distance(p1 : &PixelPoint, p2 : &PixelPoint) -> f32{
-
         ((p1.x_f32() - p2.x_f32()).powf(2.0) + (p1.y_f32() - p2.y_f32()).powf(2.0)).sqrt()
+    }
 
+    //Take a set of points and turn then into a tuple vector
+    //For compatibility with heightmaps
+    pub fn destruct_vec_copy(pnts : &Vec<PixelPoint>) -> Vec<(usize, usize)>{
+        let mut destruct_vec : Vec<(usize, usize)> = vec![];
+
+        for pnt in pnts{
+            destruct_vec.push((pnt.x(), pnt.y()));
+        }
+
+        destruct_vec
     }
 
 }
@@ -273,13 +286,19 @@ impl DeformShape{
 
 
 ///Waypoint representing a real point in the robot world space
-struct WayPoint{
+#[derive(Debug)]
+pub struct WayPoint{
     x : f32,
     y : f32,
     z : f32
 }
 
 impl WayPoint{
+
+    ///Create a new waypoint
+    pub fn new(x: f32, y: f32, z : f32) -> Self{
+        WayPoint { x, y, z }
+    }
 
     ///Transform the pixel using known calibration values into a worldspace waypoint
     pub fn from_pixel(point : PixelPoint, depth : f32) -> Self{
@@ -302,6 +321,22 @@ impl WayPoint{
         }      
     }
 
+    ///Create a list of waypoints
+    pub fn from_pixels(points : Vec<PixelPoint>, depth : Vec<f32>) -> Result<Vec<WayPoint>, anyhow::Error>{
+        if points.len() != depth.len(){
+            bail!("Length of pixels and depths is different!")
+        }
+
+        let mut waypoints : Vec<WayPoint> = vec![];
+
+        for (i, point) in points.iter().enumerate(){
+            waypoints.push(Self::from_pixel(*point, depth[i]));
+        }
+
+
+        Ok(waypoints)
+    }
+
     pub fn x(&self) -> f32{
         self.x
     }
@@ -312,6 +347,38 @@ impl WayPoint{
 
      pub fn z(&self) -> f32{
         self.z
+    }
+
+
+
+    ///return the euclidian distance between two waypoints    
+    pub fn eucl_distance(w1 : &WayPoint, w2 : &WayPoint) -> f32{
+        ((w1.x() - w2.x()).powf(2.0) + (w1.y() - w2.y()).powf(2.0) + (w1.z() - w2.z()).powf(2.0)).sqrt()
+    }
+
+    ///Export a set of waypoints to a csv
+    pub fn export(waypoints : Vec<WayPoint>, filepath : String) -> Result<(), anyhow::Error>{
+
+        //Create or overwrite a file
+        let mut file = OpenOptions::new()                       
+                        .create(true)
+                        .write(true)
+                         .open(filepath)?;
+
+
+        //Create the waypoint string to be added to the file
+        let mut wpnt_string = String::new();
+
+        for wpnt in waypoints{
+            wpnt_string.push_str(&format!("({},{},{})\n", wpnt.x, wpnt.y, wpnt.z));
+        }
+        
+
+        //Write the string into the file
+        file.write_all(&wpnt_string.into_bytes())?;
+
+
+        Ok(())
     }
 
 

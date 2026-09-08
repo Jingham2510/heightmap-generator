@@ -9,6 +9,7 @@ use std::collections::HashMap;
 pub mod types;
 pub mod edgedetection;
 pub mod pointgen;
+pub mod graphgen;
 
 
 #[derive(Debug, Default)]
