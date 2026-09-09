@@ -41,9 +41,9 @@ pub fn create_graph_simple(waypoints : Vec<WayPoint>) -> Graph<WayPoint, f32, Un
 
         let cnt_start = i + 1;
 
-        for distance in distances.iter(){
-            println!("CONNECTING: {i} to {}", i+cnt_start);
-            wp_graph.add_edge(NodeIndex::new(i), NodeIndex::new(i + cnt_start), *distance);
+        for (j, distance) in distances.iter().enumerate(){
+            println!("CONNECTING: {i} to {}", j+cnt_start);
+            wp_graph.add_edge(NodeIndex::new(i), NodeIndex::new(j + cnt_start), *distance);
         }
     }
 
