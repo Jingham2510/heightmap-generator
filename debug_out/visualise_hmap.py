@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import re
 import numpy as np
 import math
-import pygraphviz as pgv
+import pydot as pd
 
 
 class HeightMap:
@@ -158,13 +158,11 @@ Load a graph in DOT format and turn it into a png
 """
 def dot_to_img(load_filepath, save_filepath):
     #Load the DOT file
-    G = pgv.AGraph(load_filepath)
-
-    #Set the layout
-    G.layout()
+    (G,) = pd.graph_from_dot_file(load_filepath)
+    
 
     #Save the graph
-    G.draw(f"{save_filepath}.png")
+    G.write_png(f"{save_filepath}.png")
 
     return
 

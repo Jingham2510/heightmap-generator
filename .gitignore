@@ -3,3 +3,4 @@ test.*
 Cargo.lock
 *.txt
 *.png
+*.dot
