@@ -301,7 +301,7 @@ impl WayPoint{
     }
 
     ///Transform the pixel using known calibration values into a worldspace waypoint
-    pub fn from_pixel(point : PixelPoint, depth : f32) -> Self{
+    pub fn from_pixel(point : PixelPoint, depth_m : f32) -> Self{
         //known precalculated transform points
         const TRANSFORM : Matrix3<f32> = matrix![1.0, 0.0, 0.0;
                                                0.0, 1.0, 0.0;
@@ -317,7 +317,8 @@ impl WayPoint{
         Self{
             x : pnt[0],
             y : pnt[1],
-            z : depth
+            //Put the depth into mm
+            z : depth_m * 1000.0 
         }      
     }
 

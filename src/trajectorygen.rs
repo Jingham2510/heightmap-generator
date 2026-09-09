@@ -68,7 +68,8 @@ impl DetectionMode{
 #[derive(Debug, Default)]
 pub enum PathGenMode{
     #[default]
-    TESTING
+    TESTING,
+    DIRECT,
 }
 
 impl fmt::Display for PathGenMode{
@@ -76,6 +77,9 @@ impl fmt::Display for PathGenMode{
         match self{
             Self::TESTING =>{
                 write!(f, "PLACEHOLDER")
+            }
+            Self::DIRECT =>{
+                write!(f, "DIRECT")
             }
         }
     }

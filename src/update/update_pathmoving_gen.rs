@@ -15,6 +15,7 @@ use ratatui::style::Color;
 use rustgeomapping::data_types::heightmap::Heightmap;
 use rustgeomapping::analysis::analyser::comp_maps;
 
+use std::collections::HashMap;
 use std::{env, path,};
 
 use anyhow::bail;
@@ -111,6 +112,25 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             bail!("Invalid detection mode");
                         }
                     }
+                }
+
+                "pathmode" =>{
+                    match opt_var.as_str() {
+
+                        "direct" =>{
+                            app.path_gen_info.path_mode = PathGenMode::DIRECT;
+                            //No extra info required
+                            app.path_gen_info.detect_info = HashMap::new();
+                        }
+                    
+                    
+                    
+                        _ => {
+                            app.curr_error = String::from("invalid pathgen mode");
+                            bail!("Invalid detection mode");
+                        }
+                    }
+
                 }
 
 
@@ -231,7 +251,9 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                         PathGenMode::TESTING =>{
 
                             //For each point - grab the depth
-                            let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
+                            let depths = {
+                                app.path_gen_info.target_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points))
+                            };
                             
                             //Turn the pixel points into waypoints
                             let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
@@ -240,8 +262,21 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Create a graph from the generated points
                             app.path_gen_info.wpnt_graph = graphgen::create_graph_simple(waypoints);
 
-
                         }
+                        //Export all of the points to a text file without doing anything to them
+                        PathGenMode::DIRECT=>{                           
+
+                            //For each point - grab the depth
+                            let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
+                            
+                            //Turn the pixel points into waypoints
+                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+
+                            WayPoint::export(waypoints, String::from("out.txt"))?;
+                            
+                        }
+
+
                     }
                 }
 

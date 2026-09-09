@@ -39,7 +39,7 @@ pub fn create_graph_simple(waypoints : Vec<WayPoint>) -> Graph<WayPoint, f32, Un
     //Go through the distances calculate and add them as edges
     for (i, distances) in node_distances.iter().enumerate(){
         for (j, distance) in distances.iter().enumerate(){
-            wp_graph.add_edge(NodeIndex::new(i), NodeIndex::new(j), *distance);
+            wp_graph.add_edge(NodeIndex::new(i), NodeIndex::new(i + j), *distance);
         }
     }
 

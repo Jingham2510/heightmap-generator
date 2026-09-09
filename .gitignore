@@ -4,3 +4,4 @@ Cargo.lock
 *.txt
 *.png
 *.dot
+debug_out/out_graph.dot
