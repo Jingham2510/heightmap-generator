@@ -160,6 +160,8 @@ def dot_to_img(load_filepath, save_filepath):
     #Load the DOT file
     (G,) = pd.graph_from_dot_file(load_filepath)
     
+    #For some reason cant call neato?
+    #G.set_prog("neato")
 
     #Save the graph
     G.write_png(f"{save_filepath}.png")

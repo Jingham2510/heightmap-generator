@@ -559,11 +559,23 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
     //Save a generated graph to a DOT format file
     if app.path_gen_info.wpnt_graph.node_count() != 0{
 
-        //Create the basic DOT export
-        let dot = Dot::new(&app.path_gen_info.wpnt_graph);
+        
+        //Create the DOT export - with positions of nodes set to real waypoint position
+        let formatted_dot = Dot::with_attr_getters(
+            &app.path_gen_info.wpnt_graph,
+            // Global graph attributes
+            &[],
+            // Edge attribute getter
+            &|_, _| String::new()/*{format!("{}", edge_reference.weight())}*/,
+            // Node attribute getter; We don't change any node attributes
+            &|graph_reference, (node_reference, _)| {
+                let wp = graph_reference.node_weight(node_reference).unwrap();
+                format!("pos = \"{},{}!\"", wp.x(), wp.y())
+            },
+        );
 
         let path = format!("{}/debug_out/out_graph.dot", env::current_dir().unwrap().display());
-        let result = std::fs::write(&path, format!("{:?}", dot));
+        let result = std::fs::write(&path, format!("{:?}", formatted_dot));
         match result {
             Ok(_good) => {}
             Err(_e) => {
