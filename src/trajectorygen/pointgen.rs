@@ -200,9 +200,6 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
         thread_count -= 1;
     }
     */
-
-    println!("{:?}", final_points);
-
     final_points
 
 }

@@ -307,7 +307,7 @@ fn create_generated_cells(app: &mut App) {
 
             let cell_colour = calc_cell_colour(app.hmap_gen_info.generated_hmap.max(), app.hmap_gen_info.generated_hmap.min(),&cell, 0);
 
-            app.hmap_gen_info.generated_cells.push((1000.0 - row_cnt, 1000.0 - col_cnt, cell_colour));
+            app.hmap_gen_info.generated_cells.push((row_cnt, 1000.0 - col_cnt, cell_colour));
             col_cnt += 1.0;
         }
         col_cnt = 0.0;

@@ -29,7 +29,7 @@ class HeightMap:
 
         fig, ax = plt.subplots()
 
-        im = plt.imshow(self.cells, cmap="plasma")
+        im = plt.imshow(self.cells.T, cmap="plasma")
         # Colorbar settings
         cbar = fig.colorbar(im)
         cbar.set_label("Depth (m)", size=16)
@@ -50,7 +50,7 @@ class HeightMap:
     def save_less(self, title):
         fig, ax = plt.subplots()
 
-        im = plt.imshow(self.cells)
+        im = plt.imshow(self.cells.T)
         # Colorbar settings
         # Tick settings
         plt.yticks([])

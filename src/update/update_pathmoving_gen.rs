@@ -438,7 +438,7 @@ fn render_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
         if DRAW_CENTROID{
 
             //Create the centroid marker
-            let (cent_y, cent_x) = shape.centre().as_xy_f64();
+            let ( cent_x, cent_y) = shape.centre().as_xy_f64();
 
             //cent_y = app.path_gen_info.difference_height as f64 - cent_y;
 
@@ -464,7 +464,7 @@ fn render_waypoint_cells(points : &Vec<PixelPoint>) -> Vec<(f64, f64, Color)>{
     let mut cells :Vec<(f64, f64, Color)> = vec![];
 
     for point in points.iter().rev(){
-        cells.push((max - point.x() as f64, point.y() as f64,  Color::Black))
+        cells.push((point.x() as f64, max - point.y() as f64,  Color::Black))
     }
 
     cells
