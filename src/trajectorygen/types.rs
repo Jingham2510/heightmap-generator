@@ -294,10 +294,10 @@ impl DeformShape{
     }
 
     pub fn x_range_no_edge(&self) -> Range<usize>{
-        self.min.x() + 1..self.max.x() - 1
+        (self.min.x() + 1)..(self.max.x() - 1)
     }
     pub fn y_range_no_edge(&self) -> Range<usize>{
-        self.min.y() + 1..self.max.y() - 1
+        (self.min.y() + 1)..(self.max.y() - 1)
     }
 
 }

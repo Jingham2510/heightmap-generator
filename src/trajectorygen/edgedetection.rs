@@ -149,7 +149,7 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
                 //Check that the pixel doesn't already exist in a detected shapes                
                 if shapes.iter().any(|shape |ShapeEdge::in_edge_list(shape.edges(), &point)){
                     continue;
-                }
+                }               
 
                 //Detect the shape
                 shapes.push(detect_shape(hmap, point));
@@ -158,7 +158,6 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
      
         }
     }
-
     
     //Remove empty shape - double check this should ignore edges
     shapes.retain(|shape| {
@@ -192,7 +191,7 @@ fn detect_shape(hmap : &Heightmap, start_point : PixelPoint) -> DeformShape{
 
     let mut current_point = start_point;
 
-    while current_point != start_point{
+    loop{
 
         //Check the surrounding edges
         let dirs = edge_check(hmap, current_point.x() as isize, current_point.y() as isize);
@@ -205,6 +204,11 @@ fn detect_shape(hmap : &Heightmap, start_point : PixelPoint) -> DeformShape{
 
 
         current_point = PixelPoint::create((current_point.x() as isize + step.0) as usize, (current_point.y() as isize + step.1) as usize);
+
+        //If the algo has reached the start point - the shape is complete
+        if current_point == start_point{
+            break
+        }
 
     }
     

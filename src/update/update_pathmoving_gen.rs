@@ -188,7 +188,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                     match app.path_gen_info.detect_mode{
                         DetectionMode::SIMPLE =>{
                             //Create the edge shapes
-                            app.path_gen_info.detected_shapes = vec![edgedetection::simple(&app.path_gen_info.difference_map)];
+                            app.path_gen_info.detected_shapes = edgedetection::multiple(&app.path_gen_info.difference_map);
 
                             //Render the edge shapes
                             app.path_gen_info.edge_cells = render_edge_shapes(app);
