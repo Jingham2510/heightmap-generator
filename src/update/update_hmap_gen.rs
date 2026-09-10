@@ -154,8 +154,20 @@ pub fn hmap_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
             }
         }
 
+        
+
         //Load a heightmap
         "load" => {
+
+            //Create a blank heightmap
+            if var == "blank" {
+                app.hmap_gen_info.loaded_hmap = Heightmap::new(999, 999);
+                app.hmap_gen_info.hmap_loaded = true;
+                get_hmap_info(app);
+                return Ok(());
+            }
+
+
             //See if a heightmap can be loaded from the filepath
             let path = format!("{}{}", env::current_dir().unwrap().display(), var);
             let hmap_result = Heightmap::create_from_file(path);

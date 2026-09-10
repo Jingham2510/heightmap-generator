@@ -1,5 +1,12 @@
 
+use std::sync::{ mpsc};
+use std::sync::mpsc::{Receiver, Sender};
+
+
+
+
 use crate::{app::{PathGenInfo}, trajectorygen::types::*};
+
 use rustgeomapping::data_types::heightmap::Heightmap;
 
 ///Generate points inside a shape
@@ -135,7 +142,7 @@ impl VoronoiCell{
 
 
 ///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
-pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
+pub fn voronoi_master(data : &PathGenInfo) -> Vec<PixelPoint>{
 
 
     //Load the user specified values
@@ -147,7 +154,7 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
 
     let mut final_points : Vec<PixelPoint> = vec![];
 
-
+    /*
    
     for shape in &data.detected_shapes{
 
@@ -155,33 +162,30 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
 
     }
 
+    */
 
 
     //Need to wait until all threads have completed point calculation
 
-    /*in progress parallelised version
+
     //Create an Arc of the heightmap so that it can be shared and readable 
-    let arc_map = Arc::new(&data.difference_map);
 
     let mut thread_count = 0;
 
-    let pnt_pipe : (Sender<Vec<Point>>, Receiver<Vec<Point>>) = mpsc::channel();
+    let pnt_pipe : (Sender<Vec<PixelPoint>>, Receiver<Vec<PixelPoint>>) = mpsc::channel();
 
     for shape in &data.detected_shapes    {
 
-        let shape_clone = shape.clone();
-        let it_clone = iterations.clone() as i32;
-        let pnt_cnt_clone = points_per_shape.clone() as i32;
-        let map_clone = arc_map.clone();
-        let send_clone = pnt_pipe.0.clone();
+        let tx = pnt_pipe.0.clone();
 
-        //Create the voronoi thread
-        let _ = thread::spawn(move || {
+        //Create the voronoi thread (scoped as the data is read only and non-static)
+        std::thread::scope(|s| {
+            s.spawn(|| {
             
-            let pnts = voronoi_gen(&it_clone, &pnt_cnt_clone, &shape_clone, &map_clone);
+            let pnts = voronoi_gen(&(*iterations as u32), &(*points_per_shape as u32), &shape, &data.difference_map);
 
-            send_clone.send(pnts);
-
+            tx.send(pnts);
+            });
         });
 
         //Increase the thread count
@@ -199,7 +203,7 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
 
         thread_count -= 1;
     }
-    */
+ 
     final_points
 
 }
