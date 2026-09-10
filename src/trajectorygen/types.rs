@@ -97,6 +97,12 @@ impl Div<usize> for PixelPoint{
     }
 }
 
+impl PartialEq for PixelPoint{
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
 
 //Indicates a direction from a cell (where north is up)
 #[derive(Debug, Clone, PartialEq)]
@@ -114,7 +120,7 @@ pub enum Direction{
 ///An edge which describes the cell and the direction(s) of the edge
 #[derive(Debug, Clone)]
 pub struct ShapeEdge{
-    cell : PixelPoint,
+    point : PixelPoint,
     dir : Vec<Direction>
 }
 
@@ -122,14 +128,14 @@ impl ShapeEdge{
     ///Create an edge object
     pub fn create(x : usize, y: usize, dir : Vec<Direction>) -> Self{
         ShapeEdge{
-            cell : PixelPoint::create(x, y),
+            point : PixelPoint::create(x, y),
             dir
         }
     }
 
     ///Get the position of the edge
-    pub fn cell(&self) -> PixelPoint{
-        self.cell
+    pub fn point(&self) -> PixelPoint{
+        self.point
     }
 
 
@@ -140,23 +146,27 @@ impl ShapeEdge{
 
     ///Get the position casted to f64
     pub fn pos_f64(&self) -> (f64, f64){
-        self.cell.as_xy_f64()
+        self.point.as_xy_f64()
     }
 
     pub fn pos(&self) -> (usize, usize){
-        self.cell.as_xy()
+        self.point.as_xy()
     }   
 
     pub fn x(&self) -> usize{
-        self.cell.x()
+        self.point.x()
     }
     pub fn y(&self) -> usize{
-        self.cell.y()
+        self.point.y()
     }   
 
-
-
+    ///Check to see if a pixel point exists as an edge in a shape
+    pub fn in_edge_list(edges : &Vec<ShapeEdge>, point : &PixelPoint) -> bool{
+        
+        edges.iter().any(|edge| edge.point() == *point)
+    }
 }
+
 
 
 ///Turn a list of edges into a searchable hashmap
@@ -166,7 +176,7 @@ pub fn edge_vector_to_hash(edges : &Vec<ShapeEdge>) ->HashMap<(usize,usize), Vec
 
     for edge in edges{    
         edge_hashmap.insert(
-            (edge.cell.x, edge.cell.y),
+            (edge.point.x, edge.point.y),
             edge.dir.clone()
         );    
     }
@@ -177,6 +187,7 @@ pub fn edge_vector_to_hash(edges : &Vec<ShapeEdge>) ->HashMap<(usize,usize), Vec
 
 
 ///A shape that consists of edges and a centre point
+#[derive(Default)]
 pub struct DeformShape{
     edges : Vec<ShapeEdge>,
     centre : PixelPoint,
@@ -280,6 +291,13 @@ impl DeformShape{
 
     pub fn y_range(&self) -> Range<usize>{
         self.min.y()..self.max.y()
+    }
+
+    pub fn x_range_no_edge(&self) -> Range<usize>{
+        self.min.x() + 1..self.max.x() - 1
+    }
+    pub fn y_range_no_edge(&self) -> Range<usize>{
+        self.min.y() + 1..self.max.y() - 1
     }
 
 }

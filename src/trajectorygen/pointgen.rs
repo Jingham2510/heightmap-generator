@@ -154,22 +154,7 @@ pub fn voronoi_master(data : &PathGenInfo) -> Vec<PixelPoint>{
 
     let mut final_points : Vec<PixelPoint> = vec![];
 
-    /*
-   
-    for shape in &data.detected_shapes{
-
-        final_points.append(&mut voronoi_gen(&(*iterations as u32), &(*points_per_shape as u32), shape, &data.difference_map))
-
-    }
-
-    */
-
-
     //Need to wait until all threads have completed point calculation
-
-
-    //Create an Arc of the heightmap so that it can be shared and readable 
-
     let mut thread_count = 0;
 
     let pnt_pipe : (Sender<Vec<PixelPoint>>, Receiver<Vec<PixelPoint>>) = mpsc::channel();
