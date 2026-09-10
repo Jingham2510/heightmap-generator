@@ -112,7 +112,7 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
 
     let mut shapes : Vec<DeformShape> = vec![];
 
-    //Put the heightmap on the heap to save memory
+    //Put the heightmap on the heap to save the stack
     let heaped_hmap = Box::new(hmap);
 
     let mut visit_map = Box::new(Heightmap::new(hmap.width(), hmap.height()));
@@ -129,17 +129,18 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
 
            //Get the cell value
             let cell_val = hmap.get_cell_height(x, y).unwrap();
-
             //Ignore if the cell is nan or zero 
             if cell_val.is_nan() || cell_val == 0.0{
                 continue;
             }
 
+            //Generate a new edge set based on a flooding algorithm
             let mut edge_set : Vec<ShapeEdge> = vec![];
 
             flood_fill(&heaped_hmap, &mut visit_map, &mut edge_set, PixelPoint::create(x, y));
 
             shapes.push(DeformShape::from(edge_set));
+
             } 
 
      
@@ -193,8 +194,8 @@ fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap, current_edges : &mut
     let x = curr_point.x();
     let y = curr_point.y();
 
-    //Check that the point is valid
-    if  x >= visit_map.width()  || y >= visit_map.height(){
+    //Check that the point doesn't go out of bounds
+    if  x >= visit_map.width() || y >= visit_map.height(){
         return
     }
     //Check if the points has been visited
@@ -205,22 +206,31 @@ fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap, current_edges : &mut
     //Get the cell value
     let height = map.get_cell_height(x, y).unwrap();
     
-    //Check that there is a cell there
+    //Check that there is a valid cell there
     if height.is_nan() || height == 0.0{
         return
     }
 
     //Add any edges to the edge list
-    current_edges.push(ShapeEdge::new(&x, &y, edge_check(map, x as isize, y as isize)));
+    let dirs = edge_check(map, x as isize, y as isize);
+    if !dirs.is_empty(){
+        current_edges.push(ShapeEdge::new(&x, &y, dirs));
+    }    
 
     //Mark the spot as visited
-    visit_map.set_cell_height(x, y, 1.0);
+    visit_map.set_cell_height(x, y, 1.0).unwrap();
 
     //Traverse to the cells around
     flood_fill(map, visit_map, current_edges, PixelPoint::create(x + 1, y));
-    flood_fill(map, visit_map, current_edges, PixelPoint::create(x - 1, y));
-    flood_fill(map, visit_map, current_edges, PixelPoint::create(x , y + 1));
-    flood_fill(map, visit_map, current_edges, PixelPoint::create(x , y - 1));
+    flood_fill(map, visit_map, current_edges, PixelPoint::create(x ,y + 1));
+
+    if x != 0{
+        flood_fill(map, visit_map, current_edges, PixelPoint::create(x - 1, y));
+    }
+    if y != 0{
+        flood_fill(map, visit_map, current_edges, PixelPoint::create(x , y - 1));
+    }
+    
 
 
 
