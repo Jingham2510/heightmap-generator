@@ -118,7 +118,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                     match opt_var.as_str() {
 
                         "direct" =>{
-                            app.path_gen_info.path_mode = PathGenMode::DIRECT;
+                            app.path_gen_info.path_mode = PathGenMode::POINTTOPOINT;
                             //No extra info required
                             app.path_gen_info.detect_info = HashMap::new();
                         }
@@ -264,7 +264,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                         }
                         //Export all of the points to a text file without doing anything to them
-                        PathGenMode::DIRECT=>{                           
+                        PathGenMode::POINTTOPOINT=>{                           
 
                             //For each point - grab the depth
                             let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
@@ -366,7 +366,7 @@ fn create_diff_map(app : &mut App) -> Result<(), anyhow::Error>{
                     
                     let cell_colour = calc_cell_colour(max, min, &cell, 1);
 
-                    app.path_gen_info.diff_map_cells.push((col_cnt, row_cnt, cell_colour));
+                    app.path_gen_info.diff_map_cells.push((1000.0 - row_cnt, 1000.0 - col_cnt, cell_colour));
                     col_cnt += 1.0;
                 }
                 col_cnt = 0.0;
@@ -464,7 +464,7 @@ fn render_waypoint_cells(points : &Vec<PixelPoint>) -> Vec<(f64, f64, Color)>{
     let mut cells :Vec<(f64, f64, Color)> = vec![];
 
     for point in points.iter().rev(){
-        cells.push((point.y() as f64, max - point.x() as f64, Color::Black))
+        cells.push((max - point.x() as f64, point.y() as f64,  Color::Black))
     }
 
     cells

@@ -201,6 +201,8 @@ pub fn voronoi(data : &PathGenInfo) -> Vec<PixelPoint>{
     }
     */
 
+    println!("{:?}", final_points);
+
     final_points
 
 }

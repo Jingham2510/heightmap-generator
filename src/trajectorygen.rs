@@ -69,7 +69,7 @@ impl DetectionMode{
 pub enum PathGenMode{
     #[default]
     TESTING,
-    DIRECT,
+    POINTTOPOINT,
 }
 
 impl fmt::Display for PathGenMode{
@@ -78,8 +78,8 @@ impl fmt::Display for PathGenMode{
             Self::TESTING =>{
                 write!(f, "PLACEHOLDER")
             }
-            Self::DIRECT =>{
-                write!(f, "DIRECT")
+            Self::POINTTOPOINT =>{
+                write!(f, "POINTTOPOINT")
             }
         }
     }

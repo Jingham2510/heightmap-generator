@@ -72,8 +72,8 @@ class HeightMap:
         it = np.nditer(self.cells, flags=['multi_index'])
         for cell in it:
             if not math.isnan(cell) and cell != 0.0:
-                X.append(it.multi_index[1])
-                Y.append(1000 - it.multi_index[0])
+                X.append(it.multi_index[0])
+                Y.append(1000 - it.multi_index[1])
 
 
         plt.scatter(X, Y)

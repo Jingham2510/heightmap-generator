@@ -281,7 +281,7 @@ fn get_hmap_info(app: &mut App) {
         for cell in row {
             let cell_colour = calc_cell_colour(app.hmap_gen_info.hmap_max, app.hmap_gen_info.hmap_min,&cell, 0);
 
-            app.hmap_gen_info.hmap_cells.push((col_cnt, row_cnt, cell_colour));
+            app.hmap_gen_info.hmap_cells.push((1000.0 - row_cnt, 1000.0 - col_cnt, cell_colour));
             col_cnt += 1.0;
         }
         col_cnt = 0.0;
@@ -297,7 +297,7 @@ fn create_generated_cells(app: &mut App) {
     let mut row_cnt = 0.0;
     let mut col_cnt = 0.0;
     //Heightmap drawing function - reverse to draw and match pyplot
-    for row in app.hmap_gen_info.generated_hmap.cells().into_iter().rev() {
+    for row in app.hmap_gen_info.generated_hmap.cells().into_iter() {
         for cell in row {
             //Dont paint nan cells
             if cell.is_nan(){
@@ -307,7 +307,7 @@ fn create_generated_cells(app: &mut App) {
 
             let cell_colour = calc_cell_colour(app.hmap_gen_info.generated_hmap.max(), app.hmap_gen_info.generated_hmap.min(),&cell, 0);
 
-            app.hmap_gen_info.generated_cells.push((col_cnt, row_cnt, cell_colour));
+            app.hmap_gen_info.generated_cells.push((1000.0 - row_cnt, 1000.0 - col_cnt, cell_colour));
             col_cnt += 1.0;
         }
         col_cnt = 0.0;
