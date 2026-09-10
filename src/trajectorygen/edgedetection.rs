@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 ///Methods to detect the edges of earthshapes
 use crate::trajectorygen::types::{DeformShape, Direction, PixelPoint, ShapeEdge};
 use rustgeomapping::data_types::heightmap::Heightmap;
@@ -108,56 +110,42 @@ fn edge_check(hmap : &Heightmap, x : isize, y : isize) -> Vec<Direction>{
 /// Will eventually be the default edge detection paradigm (why let the user choose a simpler detection method?)
 pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
 
-    /*
-    Approach:
-    -Go through cell by cell and find the first top left corner
-    -Store the corner as the starting point 
-    -From the corner follow the trail of edges (clockwise) until back at the start
-    -Then go cell by cell until another top left corner is found (checking it isnt already accounted for)
-    -Repeat
-    -Filter out every empty shape
-        -i.e. remove inner shapes (like the interior of a circle)
-
-     */
-
-
     let mut shapes : Vec<DeformShape> = vec![];
 
+    //Put the heightmap on the heap to save memory
+    let heaped_hmap = Box::new(hmap);
+
+    let mut visit_map = Box::new(Heightmap::new(hmap.width(), hmap.height()));
 
      //Go through every column (ignoring edges)
     for x in 1..hmap.width() - 1{
         //Go through every row (ignoring edges)
         for y in 1..hmap.height() - 1 {          
            
+            //Check if the cell has been visited
+            if !visit_map.get_cell_height(x, y).unwrap().is_nan(){
+                continue;
+            }
+
            //Get the cell value
             let cell_val = hmap.get_cell_height(x, y).unwrap();
 
             //Ignore if the cell is nan or zero 
             if cell_val.is_nan() || cell_val == 0.0{
                 continue;
-            } 
+            }
 
-            //Check the surrounding cells
-            let dirs = edge_check(hmap, x as isize, y as isize);
+            let mut edge_set : Vec<ShapeEdge> = vec![];
 
-            //Check if the pixel is a top left corner
-            if dirs.contains(&Direction::NORTHWEST){
+            flood_fill(&heaped_hmap, &mut visit_map, &mut edge_set, PixelPoint::create(x, y));
 
-                //Construct the pixel
-                let point = PixelPoint::create(x, y);
-
-                //Check that the pixel doesn't already exist in a detected shapes                
-                if shapes.iter().any(|shape |ShapeEdge::in_edge_list(shape.edges(), &point)){
-                    continue;
-                }               
-
-                //Detect the shape
-                shapes.push(detect_shape(hmap, point));
+            shapes.push(DeformShape::from(edge_set));
             } 
 
      
         }
-    }
+
+    
     
     //Remove empty shape - double check this should ignore edges
     shapes.retain(|shape| {
@@ -184,73 +172,59 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
 }
 
 
-///Follow edges clockwise until the starting point is reached to create a shape
-fn detect_shape(hmap : &Heightmap, start_point : PixelPoint) -> DeformShape{
-
-    let mut edges : Vec<ShapeEdge> = vec![];
-
-    let mut current_point = start_point;
-
-    loop{
-
-        //Check the surrounding edges
-        let dirs = edge_check(hmap, current_point.x() as isize, current_point.y() as isize);
-
-        //Pick the next edge in a clockwise fashion (edge priority)
-        let step = clockwise_edge_step(&dirs);
-
-        //Add the current point to the shape
-        edges.push(ShapeEdge::create(current_point.x(), current_point.y(), dirs));
 
 
-        current_point = PixelPoint::create((current_point.x() as isize + step.0) as usize, (current_point.y() as isize + step.1) as usize);
 
-        //If the algo has reached the start point - the shape is complete
-        if current_point == start_point{
-            break
-        }
+/*
+Online solution seems to be:
+(I would require a copy of the map)
+Start from the first cell spotted and flood fill recursively until you have marked all cells as visited 
+then continue iterating until a non-visited cell is spotted (This is useful for just counting the number of islands)
 
+I think it could be modified such that everytime you spot a non-visited cell
+create a new edge list
+pass that shape as a reference
+When a cell is marked as visited -> it is also checked if it is an edge, which are then added to the edge list
+
+*/
+
+fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap, current_edges : &mut Vec<ShapeEdge>, curr_point : PixelPoint){
+
+    let x = curr_point.x();
+    let y = curr_point.y();
+
+    //Check that the point is valid
+    if  x >= visit_map.width()  || y >= visit_map.height(){
+        return
+    }
+    //Check if the points has been visited
+    if !visit_map.get_cell_height(x, y).unwrap().is_nan(){
+        return
     }
     
-
-    DeformShape::from(edges)
-}
-
-///Tells the shape detector which way to step (clockwise)
-fn clockwise_edge_step(dirs : &Vec<Direction>) -> (isize, isize){
-
-
-    /*Need to think more about this really - how do we traverse an unknown edge?
-    Recursive method that checks the surroounding cells to see if they are edges that retracts when it reaches a non edge?
-    Although if we can guarantee we are travelling in a clockwise direction correctly we should always be going to an edge spot?
-    */
-
-
-    //The edges indicate which way a shape does not travel (so the check is inverted)
+    //Get the cell value
+    let height = map.get_cell_height(x, y).unwrap();
     
-    if !dirs.contains(&Direction::NORTH){
-        return (0, 1)
+    //Check that there is a cell there
+    if height.is_nan() || height == 0.0{
+        return
     }
-    if !dirs.contains(&Direction::NORTHEAST){
-        return (1,1)
-    }
-    if !dirs.contains(&Direction::EAST){
-        return (1, 0)
-    }
-    if !dirs.contains(&Direction::SOUTHEAST){
-        return (1,-1)
-    }
-    if !dirs.contains(&Direction::SOUTH){
-        return (0, -1)
-    }
-    if !dirs.contains(&Direction::SOUTHWEST){
-        return (-1, -1)
-    }
-    if !dirs.contains(&Direction::WEST){
-        return (-1, 0)
-    }else{ //Doesnt contain an edge in Northwest
-        return (-1, -1)
-    }
+
+    //Add any edges to the edge list
+    current_edges.push(ShapeEdge::new(&x, &y, edge_check(map, x as isize, y as isize)));
+
+    //Mark the spot as visited
+    visit_map.set_cell_height(x, y, 1.0);
+
+    //Traverse to the cells around
+    flood_fill(map, visit_map, current_edges, PixelPoint::create(x + 1, y));
+    flood_fill(map, visit_map, current_edges, PixelPoint::create(x - 1, y));
+    flood_fill(map, visit_map, current_edges, PixelPoint::create(x , y + 1));
+    flood_fill(map, visit_map, current_edges, PixelPoint::create(x , y - 1));
+
+
+
+
+    
 
 }
-

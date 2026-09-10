@@ -133,6 +133,13 @@ impl ShapeEdge{
         }
     }
 
+    pub fn new(x: &usize, y: &usize, dir : Vec<Direction>) -> Self{
+        ShapeEdge{
+            point : PixelPoint::create(*x, *y),
+            dir
+        }
+    }
+
     ///Get the position of the edge
     pub fn point(&self) -> PixelPoint{
         self.point
