@@ -6,5 +6,5 @@ The tool can also be used to generate waypoints for a robot to follow (to hopefu
 
 Lots more methods to investigate!
 
-![](https://raw.githubusercontent.com/Jingham2510/jingham2510.github.io/blob/main/images/flood.gif)
+![](https://github.com/Jingham2510/jingham2510.github.io/blob/main/images/flood.gif)
 
