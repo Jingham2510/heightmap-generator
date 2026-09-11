@@ -9,6 +9,8 @@ import re
 import numpy as np
 import math
 import pydot as pd
+import os
+import imageio.v2 as imageio
 
 
 class HeightMap:
@@ -202,4 +204,22 @@ if __name__ == "__main__":
    
    
 
+    #Creating the flood fill gif
+
+    hmaps = [i for i in range(101001)]
+
+
+    test_name = "flood_fill"
+
+    filenames = [f"debug_out/hmap_flood_fill_{no}.png" for no in range(0, 32500, 500)]
+    durations = [25 for i in range(len(filenames) - 1)]
+    durations.append(1000)   
+
     
+
+
+    with imageio.get_writer("debug_out/flood.gif", mode="I", duration=durations) as writer:
+        for filename in filenames:
+            image = imageio.imread(filename)
+            writer.append_data(image)
+

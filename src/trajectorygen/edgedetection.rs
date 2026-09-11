@@ -13,6 +13,7 @@ use rustgeomapping::data_types::heightmap::Heightmap;
 pub fn simple(hmap : &Heightmap) -> DeformShape{
     
     let mut edges :Vec<ShapeEdge> = vec![];   
+    let mut points : Vec<PixelPoint> = vec![];
 
 
     //Go through every column (ignoring edges)
@@ -31,6 +32,7 @@ pub fn simple(hmap : &Heightmap) -> DeformShape{
             //Check the surrounding cells
             let dirs = edge_check(hmap, x as isize, y as isize);
             if dirs.is_empty(){
+                points.push(PixelPoint::create(x, y));
                 continue;
             }else{
                 //If edges exist create the edge object 
@@ -41,7 +43,7 @@ pub fn simple(hmap : &Heightmap) -> DeformShape{
     }
 
     //Create the shape and return it
-    DeformShape::from(edges)
+    DeformShape::create(edges, points)
 }
 
 
@@ -140,9 +142,9 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
             }
 
             //Generate a new edge set based on a flooding algorithm
-            let shape_edges = flood_fill(&heaped_hmap, &mut visit_map,  PixelPoint::create(x, y));
+            let shape_points = flood_fill(&heaped_hmap, &mut visit_map,  PixelPoint::create(x, y));
 
-            shapes.push(DeformShape::from(shape_edges));
+            shapes.push(DeformShape::create(shape_points.0, shape_points.1));
             }      
         }
 
@@ -193,13 +195,15 @@ Here I have opted for a stack-bounded version (non-recursive) because the heap i
 
 */
 
-fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap,  start_point : PixelPoint) -> Vec<ShapeEdge>{
+fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap,  start_point : PixelPoint) -> (Vec<ShapeEdge>, Vec<PixelPoint>){
 
     let mut stack = vec![start_point];
 
     let mut edges : Vec<ShapeEdge> = vec![];
 
+    let mut shape_points : Vec<PixelPoint> = vec![];
 
+    
     while let Some(curr_point) = stack.pop(){
 
         let x = curr_point.x();
@@ -210,11 +214,10 @@ fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap,  start_point : Pixel
             continue
         }
         //Check if the point has been visited
-        if !visit_map.get_cell_height(x, y).unwrap().is_nan(){
+        if !visit_map.get_cell_height(x, y).unwrap().is_nan(){         
             continue
         }else{ //If not mark it as visited
-            visit_map.set_cell_height(x, y, 1.0).unwrap();
-            
+            visit_map.set_cell_height(x, y, 1.0).unwrap();            
         } 
         
         //Get the real cell value
@@ -222,6 +225,9 @@ fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap,  start_point : Pixel
         //Check that there is a valid cell there
         if height.is_nan() || height == 0.0{
             continue
+        }else{
+            //Add the point to the shape
+            shape_points.push(PixelPoint::create(x, y))
         }
         
         //Add any edges to the edge list
@@ -245,6 +251,6 @@ fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap,  start_point : Pixel
     }
         
 
-    edges
+    (edges, shape_points)
 
 }

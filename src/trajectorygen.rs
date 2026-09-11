@@ -10,6 +10,7 @@ pub mod types;
 pub mod edgedetection;
 pub mod pointgen;
 pub mod graphgen;
+pub mod trajgen;
 
 
 #[derive(Debug, Default)]
@@ -68,19 +69,41 @@ impl DetectionMode{
 #[derive(Debug, Default)]
 pub enum PathGenMode{
     #[default]
-    TESTING,
-    POINTTOPOINT,
+    GRAPH, //Create a graph then do something with it? (unknown yet)
+    RAW, //Just save the trajectory as raw points (in the order they were calculated)
+    NEARESTNEIGHBOUR //Order the points based on a nearest neighbour approach
 }
 
 impl fmt::Display for PathGenMode{
     fn fmt(&self, f:&mut fmt::Formatter<'_>) -> fmt::Result{
         match self{
-            Self::TESTING =>{
-                write!(f, "PLACEHOLDER")
+            Self::GRAPH =>{
+                write!(f, "GRAPH")
             }
-            Self::POINTTOPOINT =>{
-                write!(f, "POINTTOPOINT")
+            Self::RAW =>{
+                write!(f, "RAW")
             }
+            Self::NEARESTNEIGHBOUR=>{
+                write!(f, "NEAREST NEIGHBOUR")
+            }
+            
+        }
+    }
+}
+
+impl PathGenMode{
+    //Get the default hashmap setup for the pathgen mode
+    pub fn get_default_settings(&self) -> HashMap<String, f64>{
+        match self{
+            PathGenMode::NEARESTNEIGHBOUR=> {
+                HashMap::from([(String::from("starting_node"), 0.0f64)])
+                }
+
+            //Other options dont require user input
+            _ =>{
+                HashMap::default()
+            }
+
         }
     }
 }

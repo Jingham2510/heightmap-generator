@@ -1,5 +1,5 @@
 use crate::trajectorygen::types::PixelPoint;
-use crate::trajectorygen::{DetectionMode, PathGenMode, pointgen};
+use crate::trajectorygen::{DetectionMode, PathGenMode, pointgen, trajgen};
 ///App updating related to path/trajectory generation
 use crate::update::update_shared::{calc_cell_colour, safe_str_to_f64};
 use crate::trajectorygen::{edgedetection, types::{Direction, WayPoint}, graphgen};
@@ -117,10 +117,23 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                 "pathmode" =>{
                     match opt_var.as_str() {
 
-                        "direct" =>{
-                            app.path_gen_info.path_mode = PathGenMode::POINTTOPOINT;
+                        "raw" =>{
+                            app.path_gen_info.path_mode = PathGenMode::RAW;
                             //No extra info required
-                            app.path_gen_info.detect_info = HashMap::new();
+                            app.path_gen_info.path_info = PathGenMode::get_default_settings(&PathGenMode::RAW);
+                        }
+
+
+                        "graph" =>{
+                            app.path_gen_info.path_mode = PathGenMode::GRAPH;
+                            //No extra info required
+                            app.path_gen_info.path_info = PathGenMode::get_default_settings(&PathGenMode::GRAPH);
+                        }
+
+                        "nearest_neighbour" =>{
+                            app.path_gen_info.path_mode = PathGenMode::NEARESTNEIGHBOUR;
+                            //No extra info required
+                            app.path_gen_info.path_info = PathGenMode::get_default_settings(&PathGenMode::NEARESTNEIGHBOUR);
                         }
                     
                     
@@ -248,7 +261,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                     }
 
                     match app.path_gen_info.path_mode{
-                        PathGenMode::TESTING =>{
+                        PathGenMode::GRAPH =>{
 
                             //For each point - grab the depth
                             let depths = {
@@ -258,13 +271,16 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Turn the pixel points into waypoints
                             let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
 
-
                             //Create a graph from the generated points
                             app.path_gen_info.wpnt_graph = graphgen::create_graph_simple(waypoints);
 
+                            //Need to figure out what to do with this?
+                            todo!()
+
                         }
+
                         //Export all of the points to a text file without doing anything to them
-                        PathGenMode::POINTTOPOINT=>{                           
+                        PathGenMode::RAW=>{                           
 
                             //For each point - grab the depth
                             let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
@@ -274,6 +290,19 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                             WayPoint::export(waypoints, String::from("out.txt"))?;
                             
+                        }
+
+                        PathGenMode::NEARESTNEIGHBOUR=>{
+                            
+                             //For each point - grab the depth
+                            let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
+                            
+                            //Turn the pixel points into waypoints
+                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+
+                            let sorted = trajgen::nearest_neighbour(waypoints, *app.path_gen_info.path_info.get("starting_node").unwrap());
+
+                            WayPoint::export(sorted, String::from("out.txt"))?;
                         }
 
 

@@ -25,21 +25,13 @@ pub fn simple(data: &PathGenInfo) -> Vec<PixelPoint>{
 
     //For each detected shape
     for shape in &data.detected_shapes{
-
       
-        //Go through every cell that sits inside the shapes rectangle
-        for x in (shape.x_range()).step_by((tool_width/2.0) as usize){
-            for y in shape.y_range(){
+        //Go through every point in the shape
+        for point in shape.all_points(){
 
-                //Check if there is a depth disparty in the cell
-                //If there is depth disparity we know we are inside a shape
-                let cell_val = data.difference_map.get_cell_height(x, y).unwrap();
-                if cell_val.is_nan() || cell_val == 0.0{
-                    continue;
-                }
-
-
-                //Calculate the marker spacing in terms of the local shape coordinates
+            let x = point.x();
+            let y = point.y();
+            if x % (tool_width/2.0) as usize == 0{
                 if (y - shape.min().y()) as f64 % max_count == 0.0{
                     points.push(PixelPoint::create(x, y));
                 }
@@ -66,12 +58,8 @@ fn spread_points(shape : &DeformShape, no_of_points : u32, map : &Heightmap) -> 
             //Place the point in a random spot 
             let genned_point : [usize; 2]= [rand::random_range(shape.x_range()), rand::random_range(shape.y_range())];
 
-
-  
-            let cell_val = map.get_cell_height(genned_point[0], genned_point[1]).unwrap();
-
             //If invalid cell fire again
-            if cell_val == 0.0 || cell_val.is_nan(){
+            if !shape.all_points().contains(&PixelPoint::create(genned_point[0], genned_point[1])){
                 continue
             }else{
                 points.push(PixelPoint::create(genned_point[0], genned_point[1]));
@@ -240,36 +228,29 @@ fn lazy_voronoi_calc(focii : &Vec<PixelPoint>, shape : &DeformShape, map : &Heig
     }
 
     //Go through every single point in the shape
-    for x in shape.x_range(){
-        for y in shape.y_range(){
+    for point in shape.all_points().iter(){
 
-            let val = map.get_cell_height(x, y).unwrap();
+        let x = point.x();
+        let y = point.y();
+        
+        //Create the current point
+        let curr_pnt = PixelPoint::create(x, y);
 
-            //Check that the point is valid
-            if val == 0.0 || val.is_nan(){
-                continue;
+        //Create the default closest point
+        let mut cell_index = 0usize;
+        let mut dist = 99999.0;
+
+        //Find out which point it is closest to
+        for (i, cell) in v_cells.iter().enumerate(){
+            let curr_dist = PixelPoint::eucl_distance(&curr_pnt, &cell.focus);
+            if  curr_dist< dist{
+                cell_index = i;
+                dist = curr_dist;
             }
-
-            //Create the current point
-            let curr_pnt = PixelPoint::create(x, y);
-
-
-            //Create the default closest point
-            let mut cell_index = 0usize;
-            let mut dist = 99999.0;
-
-            //Find out which point it is closest to
-            for (i, cell) in v_cells.iter().enumerate(){
-                let curr_dist = PixelPoint::eucl_distance(&curr_pnt, &cell.focus);
-                if  curr_dist< dist{
-                    cell_index = i;
-                    dist = curr_dist;
-                }
-            }
-
-            //Add the point to the currnet home cell
-            v_cells[cell_index].add_point(curr_pnt);
         }
+
+        //Add the point to the current home cell
+        v_cells[cell_index].add_point(curr_pnt);        
 
     }
 

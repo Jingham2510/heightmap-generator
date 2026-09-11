@@ -196,16 +196,19 @@ pub fn edge_vector_to_hash(edges : &Vec<ShapeEdge>) ->HashMap<(usize,usize), Vec
 ///A shape that consists of edges and a centre point
 #[derive(Default)]
 pub struct DeformShape{
+    points : Vec<PixelPoint>,
     edges : Vec<ShapeEdge>,
     centre : PixelPoint,
     max : PixelPoint,
     min : PixelPoint
 }
 
-///Create a shape from a set of edges
-///Calculates the center as the geometric center (i.e. halfway inbetween the max/min)
-impl From<Vec<ShapeEdge>> for DeformShape{
-    fn from(set : Vec<ShapeEdge>) -> Self{
+
+impl DeformShape{
+
+    ///Create a shape from a set of edges
+    ///Calculates the center as the geometric center (i.e. halfway inbetween the max/min)
+    pub fn create(edges : Vec<ShapeEdge>, points : Vec<PixelPoint>) -> Self{
 
 
         let mut max_x = 0usize;
@@ -214,7 +217,7 @@ impl From<Vec<ShapeEdge>> for DeformShape{
         let mut min_y = 1001usize;
 
 
-        for edge in &set{
+        for edge in &edges{
 
             if edge.x() > max_x{
                 max_x = edge.x()
@@ -232,26 +235,6 @@ impl From<Vec<ShapeEdge>> for DeformShape{
         }
 
 
-
-        /* BUGGED? - not sure!
-        //Define the comparators
-        let x_comp = |edge : &&Edge| {
-            edge.x();
-        };
-        let y_comp = |edge: &&Edge| {
-            edge.y();
-        };
-
-        //Iterate through every edge to get the max and min points
-        let max_x  = set.iter().max_by_key(x_comp).unwrap().x();        
-        let min_x  = set.iter().min_by_key(x_comp).unwrap().x();
-
-        let max_y = set.iter().max_by_key(y_comp).unwrap().y();
-        let min_y = set.iter().min_by_key(y_comp).unwrap().y(); 
-        */
-
-
-
         let centre_pnt = PixelPoint::create(
             (min_x + max_x)/2 ,
             (min_y + max_y)/2
@@ -265,19 +248,27 @@ impl From<Vec<ShapeEdge>> for DeformShape{
             min_x, min_y
         );
 
-        Self {  edges: set, 
+        Self {  
+                points,
+                edges, 
                 centre: centre_pnt,
                 max : max_pnt,
                 min : min_pnt
             }
     }
-}
-
-impl DeformShape{
 
     ///Return a borrowed set of edges
     pub fn edges(&self) -> &Vec<ShapeEdge>{
         &self.edges
+    }
+
+    pub fn all_points(&self) -> Vec<PixelPoint>{
+        let mut points = self.points.clone();
+
+        for edge in self.edges.iter(){
+            points.push(edge.point())
+        }
+        points
     }
 
     pub fn centre(&self) -> &PixelPoint{
@@ -311,7 +302,7 @@ impl DeformShape{
 
 
 ///Waypoint representing a real point in the robot world space
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct WayPoint{
     x : f32,
     y : f32,
