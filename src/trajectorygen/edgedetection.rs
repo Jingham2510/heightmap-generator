@@ -146,9 +146,9 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
             }      
         }
 
-    println!("No of shapes: {}", shapes.len());
     
-    //Remove empty shape - double check this should ignore edges
+    //Remove empty shape - double check this should ignore edges -> there should be no empty shapes from using flood fill!
+    /*
     shapes.retain(|shape| {
         //Assume the shape is empty
         let mut ans = false;
@@ -168,8 +168,8 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
         }
         ans 
     });
+    */
 
-    println!("No of shapes: {}", shapes.len());
 
     shapes
 }
