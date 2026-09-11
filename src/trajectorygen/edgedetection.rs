@@ -1,8 +1,12 @@
-use std::sync::Arc;
+use std::{fs::OpenOptions, sync::Arc};
+
 
 ///Methods to detect the edges of earthshapes
 use crate::trajectorygen::types::{DeformShape, Direction, PixelPoint, ShapeEdge};
 use rustgeomapping::data_types::heightmap::Heightmap;
+
+
+
 
 //Assumes that there is only one shape
 //Goes through each cell and checks to see if there is a NAN next to it
@@ -110,6 +114,7 @@ fn edge_check(hmap : &Heightmap, x : isize, y : isize) -> Vec<Direction>{
 /// Will eventually be the default edge detection paradigm (why let the user choose a simpler detection method?)
 pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
 
+
     let mut shapes : Vec<DeformShape> = vec![];
 
     //Put the heightmap on the heap to save the stack
@@ -135,32 +140,29 @@ pub fn multiple(hmap :&Heightmap) -> Vec<DeformShape>{
             }
 
             //Generate a new edge set based on a flooding algorithm
-            let mut edge_set : Vec<ShapeEdge> = vec![];
+            let shape_edges = flood_fill(&heaped_hmap, &mut visit_map,  PixelPoint::create(x, y));
 
-            flood_fill(&heaped_hmap, &mut visit_map, &mut edge_set, PixelPoint::create(x, y));
-
-            shapes.push(DeformShape::from(edge_set));
-
-            } 
-
-     
+            shapes.push(DeformShape::from(shape_edges));
+            }      
         }
 
-    
+    println!("No of shapes: {}", shapes.len());
     
     //Remove empty shape - double check this should ignore edges
     shapes.retain(|shape| {
-        let mut ans = true;
+        //Assume the shape is empty
+        let mut ans = false;
+
         for x in shape.x_range_no_edge(){
             for y in shape.y_range_no_edge(){
-                let cell_val = hmap.get_cell_height(x, y).unwrap();
-
+                //See if a single cell exists
+                let cell_val = hmap.get_cell_height(x, y).unwrap();                
                 if !cell_val.is_nan() && cell_val != 0.0{
-                    ans = false;
+                    ans = true;
                     break;
                 }
             }
-            if !ans{
+            if ans{
                 break
             }
         }
@@ -187,54 +189,62 @@ create a new edge list
 pass that shape as a reference
 When a cell is marked as visited -> it is also checked if it is an edge, which are then added to the edge list
 
+Here I have opted for a stack-bounded version (non-recursive) because the heap isn't large enough to handle this large a recursive problem
+
 */
 
-fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap, current_edges : &mut Vec<ShapeEdge>, curr_point : PixelPoint){
+fn flood_fill(map : &Heightmap, visit_map : &mut Heightmap,  start_point : PixelPoint) -> Vec<ShapeEdge>{
 
-    let x = curr_point.x();
-    let y = curr_point.y();
+    let mut stack = vec![start_point];
 
-    //Check that the point doesn't go out of bounds
-    if  x >= visit_map.width() || y >= visit_map.height(){
-        return
+    let mut edges : Vec<ShapeEdge> = vec![];
+
+
+    while let Some(curr_point) = stack.pop(){
+
+        let x = curr_point.x();
+        let y = curr_point.y();
+
+        //Check that the point doesn't go out of bounds
+        if  x >= visit_map.width() || y >= visit_map.height(){
+            continue
+        }
+        //Check if the point has been visited
+        if !visit_map.get_cell_height(x, y).unwrap().is_nan(){
+            continue
+        }else{ //If not mark it as visited
+            visit_map.set_cell_height(x, y, 1.0).unwrap();
+            
+        } 
+        
+        //Get the real cell value
+        let height = map.get_cell_height(x, y).unwrap();    
+        //Check that there is a valid cell there
+        if height.is_nan() || height == 0.0{
+            continue
+        }
+        
+        //Add any edges to the edge list
+        let dirs = edge_check(map, x as isize, y as isize);
+        if !dirs.is_empty(){
+            edges.push(ShapeEdge::new(&x, &y, dirs));
+        }    
+
+        //Traverse to the cells around
+        stack.push(PixelPoint::create(x + 1, y));
+
+        if x != 0{
+            stack.push(PixelPoint::create(x - 1, y));
+        }
+
+        stack.push(PixelPoint::create(x, y + 1));
+        
+        if y != 0{
+            stack.push(PixelPoint::create(x, y - 1));
+        }
     }
-    //Check if the points has been visited
-    if !visit_map.get_cell_height(x, y).unwrap().is_nan(){
-        return
-    }
-    
-    //Get the cell value
-    let height = map.get_cell_height(x, y).unwrap();
-    
-    //Check that there is a valid cell there
-    if height.is_nan() || height == 0.0{
-        return
-    }
+        
 
-    //Add any edges to the edge list
-    let dirs = edge_check(map, x as isize, y as isize);
-    if !dirs.is_empty(){
-        current_edges.push(ShapeEdge::new(&x, &y, dirs));
-    }    
-
-    //Mark the spot as visited
-    visit_map.set_cell_height(x, y, 1.0).unwrap();
-
-    //Traverse to the cells around
-    flood_fill(map, visit_map, current_edges, PixelPoint::create(x + 1, y));
-    flood_fill(map, visit_map, current_edges, PixelPoint::create(x ,y + 1));
-
-    if x != 0{
-        flood_fill(map, visit_map, current_edges, PixelPoint::create(x - 1, y));
-    }
-    if y != 0{
-        flood_fill(map, visit_map, current_edges, PixelPoint::create(x , y - 1));
-    }
-    
-
-
-
-
-    
+    edges
 
 }
