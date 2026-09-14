@@ -279,7 +279,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Turn the pixel points into waypoints
                             let waypoints : Vec<Vec<WayPoint>> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
 
-
+                            app.path_gen_info.wpnts = waypoints.clone();
 
                             //Create a graph from the generated points
                             app.path_gen_info.wpnt_graph = graphgen::create_graph_simple(waypoints.into_iter().flatten().collect::<Vec<WayPoint>>());
@@ -291,17 +291,18 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                         //Export all of the points to a text file without doing anything to them
                         PathGenMode::RAW=>{                     
-
                           
 
                             //For each point - grab the depth
                             let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
                             
                             //Turn the pixel points into waypoints
-                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?.into_iter().flatten().collect();
+                            let waypoints : Vec<WayPoint> =  WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?.into_iter().flatten().collect();
 
-                            WayPoint::export(waypoints, String::from("out.txt"))?;
-                            
+                            app.path_gen_info.wpnts.clear();
+                            app.path_gen_info.wpnts.push(waypoints);
+
+                                            
                         }
 
                         PathGenMode::NEARESTNEIGHBOUR=>{
@@ -312,9 +313,11 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Turn the pixel points into waypoints
                             let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?.into_iter().flatten().collect();
 
-                            let sorted = trajgen::nearest_neighbour(waypoints, *app.path_gen_info.path_info.get("starting_node").unwrap());
+                            app.path_gen_info.wpnts.clear();
 
-                            WayPoint::export(sorted, String::from("out.txt"))?;
+                            app.path_gen_info.wpnts.push(trajgen::nearest_neighbour(waypoints, *app.path_gen_info.path_info.get("starting_node").unwrap()));
+
+                            
                         }
 
                          PathGenMode::SHAPENEIGHBOUR=>{
@@ -348,10 +351,8 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                             }
 
+                            app.path_gen_info.wpnts = sorted;
 
-                            
-
-                            WayPoint::export(sorted.into_iter().flatten().collect(), String::from("out.txt"))?;
                         }
 
 
@@ -661,9 +662,9 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
                 bail!("cmd error")
             }
         }
-
-
     }
+
+
 
 
 

@@ -160,8 +160,6 @@ fn generate_rectangle(
         //Offset it by the rectangle center
         corner[0] += core_settings.deform_center[0];
 
-
-
         corner[1] += core_settings.deform_center[1];
     }
 
@@ -202,13 +200,13 @@ fn create_line(start_point : [f64; 2], end_point : [f64; 2], thickness : f64, de
             if i % 2 == 0{
                 for j in 0..(length * 10.0) as usize {
                     let j = j as i16 /10;
-                    let y = (gradient * j as f64).abs() + start_point[1];
+                    let y = (gradient * j as f64) + start_point[1];
                     cells.push((j as usize + (start_point[0] as usize), (y + i as f64/2.0)as usize, deform_depth));
                 }
             }else{
                 for j in 0..(length * 10.0) as usize{
                     let j = j as i16 /10;
-                    let y = (gradient * j as f64).abs() + start_point[1];
+                    let y = (gradient * j as f64) + start_point[1];
                     cells.push((j as usize + (start_point[0] as usize), (y - i as f64/2.0)as usize, deform_depth));
                 }
             }     

@@ -198,28 +198,11 @@ if __name__ == "__main__":
                 points_map = heightmap_from_file(open("debug_out/waypoints.txt"), False)
                 points_map.save_as_scatter("debug_out/waypoints")
 
+            #Trajectory display
+            case "--trajectory":
+                return
+
             #Graph visualisation
             case "--graph":
                 dot_to_img("debug_out/out_graph.dot", "debug_out/wp_graph")
    
-   
-
-    #Creating the flood fill gif
-
-    hmaps = [i for i in range(101001)]
-
-
-    test_name = "flood_fill"
-
-    filenames = [f"debug_out/hmap_flood_fill_{no}.png" for no in range(0, 32500, 500)]
-    durations = [25 for i in range(len(filenames) - 1)]
-    durations.append(1000)   
-
-    
-
-
-    with imageio.get_writer("debug_out/flood.gif", mode="I", duration=durations) as writer:
-        for filename in filenames:
-            image = imageio.imread(filename)
-            writer.append_data(image)
-

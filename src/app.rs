@@ -16,7 +16,7 @@ pub enum DeformType {
     NONE,
     LINE,
     CIRCLE,
-    RECTANGLE,
+    RECTANGLE
 }
 
 impl DeformType {
@@ -154,7 +154,10 @@ pub struct PathGenInfo{
     pub path_info : HashMap<String, f64>,
 
     //The waypoint graph
-    pub wpnt_graph : Graph<WayPoint, f32, Undirected>
+    pub wpnt_graph : Graph<WayPoint, f32, Undirected>,
+
+    ///Trajectory points (split by shape)
+    pub wpnts : Vec<Vec<WayPoint>>
 
 }
 
