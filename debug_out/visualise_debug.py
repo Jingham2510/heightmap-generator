@@ -170,6 +170,60 @@ def dot_to_img(load_filepath, save_filepath):
 
     return
 
+
+"""
+Display a generated in order in 3D
+"""
+def disp_3D_trajectory(traj_file, save_filepath):
+
+    x = []
+    y = []
+    z = []
+
+    #Read all of the trajectory points
+    for line in traj_file:
+
+        #Strip off the brackets
+        line = line.replace("(", "")
+        line = line.replace(")\n", "")
+
+        #The coordinates are delimited by commas
+        coords = line.split(",")
+
+        x.append(float(coords[0]))
+        y.append(float(coords[1]))
+        z.append(float(coords[2]))
+        
+
+    #Create the plot frame
+    ax = plt.figure().add_subplot(projection="3d") 
+
+    ax.set_title("DEBUG - TRAJECTORY")
+
+    ax.set_xlabel("X (mm)")
+    ax.set_ylabel("Y (mm)")
+    ax.set_zlabel("Z (mm)")
+
+    #Plot the points
+    ax.plot(x, y, z, marker = "2", label = "Trajectory")
+
+    #Highlight the start point
+    ax.plot(x[0], y[0], z[0], marker="*", label = "Start")
+
+    #Highlight the end
+    ax.plot(x[-1], y[-1], z[-1], marker="D", label = "End")
+
+    ax.legend()
+
+    ax.set_aspect('equal')
+
+    #Save the plot
+    plt.savefig(save_filepath, dpi = 300)
+
+    plt.show()
+
+    return
+
 if __name__ == "__main__":
 
 
@@ -200,7 +254,7 @@ if __name__ == "__main__":
 
             #Trajectory display
             case "--trajectory":
-                return
+                disp_3D_trajectory(open("debug_out/trajectory.txt"), "debug_out/trajectory.png")
 
             #Graph visualisation
             case "--graph":

@@ -12,6 +12,11 @@ pub fn nearest_neighbour(waypoints : Vec<WayPoint>, starting_index : f64) -> Vec
     if waypoints.len() == 1{
         return waypoints
     }
+    let starting_index = if starting_index as usize > waypoints.len(){
+         waypoints.len() - 1
+    }else{
+        starting_index as usize
+    };
 
     //Initialise all nodes as unvisited
     let mut unvisited = waypoints;
@@ -19,35 +24,31 @@ pub fn nearest_neighbour(waypoints : Vec<WayPoint>, starting_index : f64) -> Vec
     let mut visited : Vec<WayPoint> = vec![];
     
     //Access the starting node
-    let mut curr_index = starting_index as usize;
-    let mut curr_node = unvisited[curr_index as usize];
+    let mut curr_index = starting_index;
+    let mut curr_node = unvisited[curr_index];
 
     //Move the first node to visited
-    visited.push(curr_node);
-    unvisited.remove(curr_index);
+    visited.push(unvisited.swap_remove(curr_index));
 
 
     //While there are still nodes left to visit
     while !unvisited.is_empty(){
 
-        let mut curr_index = 0;
-        let mut shortest_dist = 99999.0;
+        //Calculate all the distances
+        let distances = unvisited.iter().map(|x| WayPoint::eucl_distance(&curr_node, x)).collect::<Vec<f32>>();
 
-        //Check the distance to every other node
-        for (i, node) in unvisited.iter().enumerate(){
+        //Get the minimum distance index
+        let min_distance_index : usize = distances.iter()
+                                                  .enumerate()
+                                                  .min_by(|(_, a), (_, b)| a.total_cmp(b))
+                                                  .map(|(index, _)| index).unwrap();
 
-            //Calculate the distance
-            let dist = WayPoint::eucl_distance(&curr_node, node);
 
-            if dist < shortest_dist{
-                curr_index = i;
-                shortest_dist = dist;
-            }
-        }
+        //Move the node to visited            
+        visited.push(unvisited.swap_remove(min_distance_index));
 
-        //Move the node
-        visited.push(unvisited[curr_index]);
-        unvisited.remove(curr_index);        
+        curr_node = *visited.last().unwrap();
+
     }
 
     visited

@@ -637,7 +637,6 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
 
     //Save a generated graph to a DOT format file
     if app.path_gen_info.wpnt_graph.node_count() != 0{
-
         
         //Create the DOT export - with positions of nodes set to real waypoint position
         let formatted_dot = Dot::with_attr_getters(
@@ -665,8 +664,20 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
     }
 
 
+    //Save generated waypoints into a text file
+    if app.path_gen_info.wpnts.len() != 0{
 
+        let path = format!("{}/debug_out/trajectory.txt", env::current_dir().unwrap().display());
+        let result = WayPoint::export(app.path_gen_info.wpnts.clone().into_iter().flatten().collect(), path);
 
+        match result {
+            Ok(_good) => {}
+            Err(_e) => {
+                app.curr_error = String::from("Failed to save waypoint map");
+                bail!("cmd error")
+            }
+        }
+    }
 
     Ok(())
 
