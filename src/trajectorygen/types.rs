@@ -60,10 +60,10 @@ impl PixelPoint{
 
     //Take a set of points and turn then into a tuple vector
     //For compatibility with heightmaps
-    pub fn destruct_vec_copy(pnts : &Vec<PixelPoint>) -> Vec<(usize, usize)>{
+    pub fn destruct_vec_copy(pnts : &Vec<Vec<PixelPoint>>) -> Vec<(usize, usize)>{
         let mut destruct_vec : Vec<(usize, usize)> = vec![];
 
-        for pnt in pnts{
+        for pnt in pnts.iter().flatten(){
             destruct_vec.push((pnt.x(), pnt.y()));
         }
 
@@ -338,17 +338,24 @@ impl WayPoint{
         }      
     }
 
-    ///Create a list of waypoints
-    pub fn from_pixels(points : Vec<PixelPoint>, depth : Vec<f32>) -> Result<Vec<WayPoint>, anyhow::Error>{
-        if points.len() != depth.len(){
-            bail!("Length of pixels and depths is different!")
+    ///Create a list of waypoints (organised by shape)
+    pub fn from_pixels(points : Vec<Vec<PixelPoint>>, depth : Vec<f32>) -> Result<Vec<Vec<WayPoint>>, anyhow::Error>{
+
+        let mut waypoints : Vec<Vec<WayPoint>> = vec![];
+        let mut i = 0;
+
+        for shape in points{
+
+            let mut shape_wp : Vec<WayPoint> = vec![];
+
+            for point in shape{
+                shape_wp.push(Self::from_pixel(point, depth[i]));
+                i += 1;
+            }  
+
+            waypoints.push(shape_wp);          
         }
 
-        let mut waypoints : Vec<WayPoint> = vec![];
-
-        for (i, point) in points.iter().enumerate(){
-            waypoints.push(Self::from_pixel(*point, depth[i]));
-        }
 
 
         Ok(waypoints)

@@ -145,7 +145,8 @@ pub struct PathGenInfo{
     ///The cells that require drawing to display edges
     pub edge_cells : Vec<(f64, f64, Color)>,
 
-    pub generated_points : Vec<PixelPoint>,
+    ///Points on the map, each inner vector is a seperate shape
+    pub generated_points : Vec<Vec<PixelPoint>>,
     pub point_cells : Vec<(f64, f64, Color)>,
 
     ///Path generation mode

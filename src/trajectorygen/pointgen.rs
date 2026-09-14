@@ -130,7 +130,7 @@ impl VoronoiCell{
 
 
 ///Generate the points using a voronoi diagram approximation to spread them evenly amongst a shape "S"
-pub fn voronoi_master(data : &PathGenInfo) -> Vec<PixelPoint>{
+pub fn voronoi_master(data : &PathGenInfo) -> Vec<Vec<PixelPoint>>{
 
 
     //Load the user specified values
@@ -140,7 +140,7 @@ pub fn voronoi_master(data : &PathGenInfo) -> Vec<PixelPoint>{
 
     
 
-    let mut final_points : Vec<PixelPoint> = vec![];
+    let mut final_points : Vec<Vec<PixelPoint>> = vec![];
 
     //Need to wait until all threads have completed point calculation
     let mut thread_count = 0;
@@ -170,9 +170,9 @@ pub fn voronoi_master(data : &PathGenInfo) -> Vec<PixelPoint>{
     while thread_count != 0{
 
         //Read all of the points (order doesn't necessarily matter)
-        let mut pnts = pnt_pipe.1.recv().unwrap();
+        let pnts = pnt_pipe.1.recv().unwrap();
 
-        final_points.append(&mut pnts);
+        final_points.push(pnts);
 
         thread_count -= 1;
     }
@@ -204,7 +204,7 @@ fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, m
     for _i in 0u32..*iterations{
 
         //Generate the diagram from the points and get the point collections
-        let cells = lazy_voronoi_calc(&points, shape, map);
+        let cells = lazy_voronoi_calc(&points, shape);
 
         //Find the centroid from each cell (potential to sit outside the shape - edge case?)
         let new_points = calc_centroids(cells);
@@ -218,7 +218,7 @@ fn voronoi_gen(iterations : &u32, pnts_per_shape : &u32, shape : &DeformShape, m
 
 
 ///Brute force voronoi cell identification
-fn lazy_voronoi_calc(focii : &Vec<PixelPoint>, shape : &DeformShape, map : &Heightmap) -> Vec<VoronoiCell>{
+fn lazy_voronoi_calc(focii : &Vec<PixelPoint>, shape : &DeformShape) -> Vec<VoronoiCell>{
     
     let mut v_cells : Vec<VoronoiCell> = vec![];
 

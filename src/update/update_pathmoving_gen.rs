@@ -135,6 +135,12 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //No extra info required
                             app.path_gen_info.path_info = PathGenMode::get_default_settings(&PathGenMode::NEARESTNEIGHBOUR);
                         }
+
+                        "shape_neighbour" =>{
+                            app.path_gen_info.path_mode = PathGenMode::SHAPENEIGHBOUR;
+                            //No extra info required
+                            app.path_gen_info.path_info = PathGenMode::get_default_settings(&PathGenMode::SHAPENEIGHBOUR);
+                        }
                     
                     
                     
@@ -207,7 +213,8 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             app.path_gen_info.edge_cells = render_edge_shapes(app);
 
                             //Generate the points
-                            app.path_gen_info.generated_points = pointgen::simple(&app.path_gen_info);
+                            app.path_gen_info.generated_points = vec![];
+                            app.path_gen_info.generated_points.push(pointgen::simple(&app.path_gen_info));
                             //Create the points to render
                             app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);                      
 
@@ -223,7 +230,8 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             app.path_gen_info.edge_cells = render_edge_shapes(app);
 
                             //Generate the points
-                            app.path_gen_info.generated_points = pointgen::scattershot(&app.path_gen_info);
+                            app.path_gen_info.generated_points.clear();
+                            app.path_gen_info.generated_points.push(pointgen::scattershot(&app.path_gen_info));
                             //Create the points to render
                             app.path_gen_info.point_cells = render_waypoint_cells(&app.path_gen_info.generated_points);      
 
@@ -269,10 +277,12 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             };
                             
                             //Turn the pixel points into waypoints
-                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+                            let waypoints : Vec<Vec<WayPoint>> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+
+
 
                             //Create a graph from the generated points
-                            app.path_gen_info.wpnt_graph = graphgen::create_graph_simple(waypoints);
+                            app.path_gen_info.wpnt_graph = graphgen::create_graph_simple(waypoints.into_iter().flatten().collect::<Vec<WayPoint>>());
 
                             //Need to figure out what to do with this?
                             todo!()
@@ -280,13 +290,15 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                         }
 
                         //Export all of the points to a text file without doing anything to them
-                        PathGenMode::RAW=>{                           
+                        PathGenMode::RAW=>{                     
+
+                          
 
                             //For each point - grab the depth
                             let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
                             
                             //Turn the pixel points into waypoints
-                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?.into_iter().flatten().collect();
 
                             WayPoint::export(waypoints, String::from("out.txt"))?;
                             
@@ -298,11 +310,48 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
                             
                             //Turn the pixel points into waypoints
-                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+                            let waypoints : Vec<WayPoint> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?.into_iter().flatten().collect();
 
                             let sorted = trajgen::nearest_neighbour(waypoints, *app.path_gen_info.path_info.get("starting_node").unwrap());
 
                             WayPoint::export(sorted, String::from("out.txt"))?;
+                        }
+
+                         PathGenMode::SHAPENEIGHBOUR=>{
+                            
+                             //For each point - grab the depth
+                            let depths = app.path_gen_info.difference_map.sample_points(PixelPoint::destruct_vec_copy(&app.path_gen_info.generated_points));
+                            
+                            //Turn the pixel points into waypoints
+                            let waypoints : Vec<Vec<WayPoint>> = WayPoint::from_pixels(app.path_gen_info.generated_points.clone(), depths)?;
+
+                            //For each set of waypoints - create a nearest neighbour path
+                            let mut sorted : Vec<Vec<WayPoint>> = vec![];
+
+                            //Sort each set of waypoints by shape
+                            for set in waypoints{
+
+                                let start_node = *app.path_gen_info.path_info.get("starting_node").unwrap();
+
+                                //Add the starting point for the shape
+                                let first_point = set[start_node as usize];
+                                let mut shape_wps : Vec<WayPoint> = vec![WayPoint::new(first_point.x(), first_point.y(), first_point.z() + *app.path_gen_info.path_info.get("clearance_height").unwrap() as f32)];
+
+                                //Add the shape nodes
+                                shape_wps.append(&mut trajgen::nearest_neighbour(set, start_node));
+
+                                //Add the last point that allows the trajectory to avoid touching the soil
+                                let last_point = shape_wps.last().unwrap();
+                                shape_wps.push(WayPoint::new(last_point.x(), last_point.y(), last_point.z() + *app.path_gen_info.path_info.get("clearance_height").unwrap() as f32));
+
+                                sorted.push(shape_wps);
+
+                            }
+
+
+                            
+
+                            WayPoint::export(sorted.into_iter().flatten().collect(), String::from("out.txt"))?;
                         }
 
 
@@ -485,14 +534,14 @@ fn render_edge_shapes(app : &App) -> Vec<(f64, f64, Color)>{
 }
 
 ///Create the waypoint drawing cells
-fn render_waypoint_cells(points : &Vec<PixelPoint>) -> Vec<(f64, f64, Color)>{
+fn render_waypoint_cells(points : &Vec<Vec<PixelPoint>>) -> Vec<(f64, f64, Color)>{
 
     //Magic number for now 
     let max = 1000.0;
 
     let mut cells :Vec<(f64, f64, Color)> = vec![];
 
-    for point in points.iter().rev(){
+    for point in points.iter().flatten().rev(){
         cells.push((point.x() as f64, max - point.y() as f64,  Color::Black))
     }
 
@@ -568,7 +617,7 @@ fn debug_save(app : &mut App) -> Result<(), anyhow::Error>{
         }
 
         //Place all the points (without the heights)
-        for point in &app.path_gen_info.generated_points{
+        for point in app.path_gen_info.generated_points.iter().flatten(){
             let _ = point_map.set_cell_height(point.x(), point.y(), 100.0);
         }
 

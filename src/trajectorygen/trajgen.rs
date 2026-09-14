@@ -1,5 +1,5 @@
 /*
-A collection of methods to generate trajectories from 
+A collection of methods to generate trajectories from a set of waypoints
 */
 
 

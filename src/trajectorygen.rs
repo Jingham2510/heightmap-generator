@@ -71,7 +71,8 @@ pub enum PathGenMode{
     #[default]
     GRAPH, //Create a graph then do something with it? (unknown yet)
     RAW, //Just save the trajectory as raw points (in the order they were calculated)
-    NEARESTNEIGHBOUR //Order the points based on a nearest neighbour approach
+    NEARESTNEIGHBOUR, //Order the points based on a nearest neighbour approach
+    SHAPENEIGHBOUR //Nearest neighour organised by shape
 }
 
 impl fmt::Display for PathGenMode{
@@ -86,6 +87,9 @@ impl fmt::Display for PathGenMode{
             Self::NEARESTNEIGHBOUR=>{
                 write!(f, "NEAREST NEIGHBOUR")
             }
+            Self::SHAPENEIGHBOUR=>{
+                write!(f, "NEAREST NEIGHBOUR (BY SHAPE)")
+            }
             
         }
     }
@@ -98,6 +102,11 @@ impl PathGenMode{
             PathGenMode::NEARESTNEIGHBOUR=> {
                 HashMap::from([(String::from("starting_node"), 0.0f64)])
                 }
+
+            Self::SHAPENEIGHBOUR=>{
+                HashMap::from([(String::from("starting_node"), 0.0f64), (String::from("clearance_height"), 100.0f64)])
+            }
+            
 
             //Other options dont require user input
             _ =>{
