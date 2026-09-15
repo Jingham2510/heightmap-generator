@@ -384,9 +384,10 @@ impl WayPoint{
     pub fn export(waypoints : Vec<WayPoint>, filepath : String) -> Result<(), anyhow::Error>{
 
         //Create or overwrite a file
-        let mut file = OpenOptions::new()                       
-                        .create(true)
-                        .write(true)
+        let mut file = OpenOptions::new()    
+                        .write(true)                   
+                        .truncate(true)
+                        .create(true)                        
                          .open(filepath)?;
 
 
