@@ -10,7 +10,6 @@ import numpy as np
 import math
 import pydot as pd
 import os
-import imageio.v2 as imageio
 
 
 class HeightMap:
@@ -227,14 +226,16 @@ def disp_3D_trajectory(traj_file, save_filepath):
 if __name__ == "__main__":
 
 
+    base_fp = "../"
+
     #print the system arguments
     for arg in sys.argv:
         #Match the argument to what to generate
         match arg:
             #Difference map creation
             case "--diff_map":
-                diff_map = heightmap_from_file(open("debug_out/difference_map.txt"), False)
-                diff_map.save("debug_out/difference_map")
+                diff_map = heightmap_from_file(open(base_fp + "difference_map.txt"), False)
+                diff_map.save(base_fp + "difference_map")
                 diff_loaded = True
 
             #Edge map creation
@@ -242,21 +243,21 @@ if __name__ == "__main__":
                 split_arg = arg.split("_")
 
                 for i in range(int(split_arg[1]) + 1):
-                    fp = open(f"debug_out/shape_{i}.txt")
+                    fp = open(base_fp + f"shape_{i}.txt")
                     shape = heightmap_from_file(fp, False)
-                    shape.save_less(f"debug_out/shape_{i}")                   
+                    shape.save_less(base_fp + f"shape_{i}")                   
 
 
             #Point map creation
             case "--waypoints":
-                points_map = heightmap_from_file(open("debug_out/waypoints.txt"), False)
-                points_map.save_as_scatter("debug_out/waypoints")
+                points_map = heightmap_from_file(open(base_fp + "waypoints.txt"), False)
+                points_map.save_as_scatter(base_fp + "waypoints")
 
             #Trajectory display
             case "--trajectory":
-                disp_3D_trajectory(open("debug_out/trajectory.txt"), "debug_out/trajectory.png")
+                disp_3D_trajectory(open(base_fp + "trajectory.txt"), base_fp + "/trajectory.png")
 
             #Graph visualisation
             case "--graph":
-                dot_to_img("debug_out/out_graph.dot", "debug_out/wp_graph")
+                dot_to_img(base_fp + "out_graph.dot", base_fp + "wp_graph")
    
