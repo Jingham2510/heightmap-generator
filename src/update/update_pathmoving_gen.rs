@@ -241,6 +241,8 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                             //Create the edge shapes
                             app.path_gen_info.detected_shapes = edgedetection::multiple(&app.path_gen_info.difference_map);
 
+                            app.curr_error = format!("DEBUG: {} shapes detected", app.path_gen_info.detected_shapes.len());
+
                             //Create the edge shapes
                             app.path_gen_info.edge_cells = render_edge_shapes(app);
 
@@ -315,7 +317,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
 
                             app.path_gen_info.wpnts.clear();
 
-                            app.path_gen_info.wpnts.push(trajgen::nearest_neighbour(waypoints, *app.path_gen_info.path_info.get("starting_node").unwrap()));
+                            app.path_gen_info.wpnts.push(trajgen::nearest_neighbour(waypoints, *app.path_gen_info.path_info.get("starting_node").unwrap(), true));
 
                             
                         }
@@ -341,7 +343,7 @@ pub fn path_gen_parse_input(app: &mut App, cmd_var : Vec<&str>) -> Result<(), an
                                 let mut shape_wps : Vec<WayPoint> = vec![WayPoint::new(first_point.x(), first_point.y(), first_point.z() + *app.path_gen_info.path_info.get("clearance_height").unwrap() as f32)];
 
                                 //Add the shape nodes
-                                shape_wps.append(&mut trajgen::nearest_neighbour(set, start_node));
+                                shape_wps.append(&mut trajgen::nearest_neighbour(set, start_node, true));
 
                                 //Add the last point that allows the trajectory to avoid touching the soil
                                 let last_point = shape_wps.last().unwrap();

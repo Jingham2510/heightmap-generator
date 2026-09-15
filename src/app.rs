@@ -175,8 +175,9 @@ pub struct App {
     ///Tab selection
     pub tab_no : usize,
 
-    ///Current CLI input
+    ///Current error message
     pub curr_error: String,
+    ///Current CLI input
     pub curr_input: String,
 
     ///Heightmap generation information
